@@ -27,6 +27,7 @@ import {
 import { formatDateTime } from "@/features/store-wallet/domain/format";
 import type { WalletNonceCreateResponse } from "@/features/store-wallet/domain/types";
 import { FeedbackBanner } from "@/features/store-wallet/ui/feedback-banner";
+import { LoadingOverlay } from "@/features/store-wallet/ui/loading-overlay";
 
 interface StepFlowArrowProps {
   isActive: boolean;
@@ -203,7 +204,6 @@ export function WalletRegisterView() {
       });
 
       setNonceData(result.data);
-      setStatusMessage("署名情報を取得しました。署名して登録を完了してください。");
     } catch (error) {
       setErrorMessage(readClientError(error, "署名情報の取得に失敗しました。"));
     } finally {
@@ -259,6 +259,10 @@ export function WalletRegisterView() {
 
   return (
     <Stack spacing={3}>
+      <LoadingOverlay
+        open={isRequestingNonce || isVerifying}
+        label={isVerifying ? "署名中...": "署名情報を取得中..."}
+      />
       <FeedbackBanner
         message={errorMessage}
         severity="error"

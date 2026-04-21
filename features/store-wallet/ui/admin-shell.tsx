@@ -11,17 +11,12 @@ export function AdminShell({ children }: AdminShellProps) {
     <Box
       sx={{
         minHeight: "100vh",
-        px: { xs: 1.5, sm: 2.5, lg: 3 },
-        py: { xs: 1.5, sm: 2.5 },
       }}
     >
       <Stack
         direction={{ xs: "column", lg: "row" }}
-        spacing={2}
         sx={{
-          minHeight: "calc(100vh - 24px)",
-          maxWidth: 1320,
-          mx: "auto",
+          minHeight: "100vh",
         }}
       >
         <Box
@@ -30,8 +25,7 @@ export function AdminShell({ children }: AdminShellProps) {
             width: { xs: "100%", lg: 250 },
             flexShrink: 0,
             p: 2,
-            borderRadius: 4,
-            border: "1px solid",
+            borderRight: "1px solid",
             borderColor: "divider",
             bgcolor: "background.paper",
           }}
@@ -48,9 +42,6 @@ export function AdminShell({ children }: AdminShellProps) {
             flex: 1,
             minWidth: 0,
             p: { xs: 2, md: 3 },
-            borderRadius: 4,
-            border: "1px solid",
-            borderColor: "divider",
             bgcolor: "background.paper",
           }}
         >

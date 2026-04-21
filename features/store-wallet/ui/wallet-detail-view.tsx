@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import {
   Alert,
   Box,
@@ -15,13 +15,17 @@ import { isAddress } from "viem";
 import type { Address } from "viem";
 import { useBalance } from "wagmi";
 
-import { fetchStoreWallet, readClientError } from "@/features/store-wallet/api/client";
+import {
+  fetchStoreWallet,
+  readClientError,
+} from "@/features/store-wallet/api/client";
 import { formatDateTime } from "@/features/store-wallet/domain/format";
 import type { StoreWalletResponse } from "@/features/store-wallet/domain/types";
 import { FeedbackBanner } from "@/features/store-wallet/ui/feedback-banner";
+import { LoadingOverlay } from "@/features/store-wallet/ui/loading-overlay";
 
 interface WalletDetailViewProps {
-  initialWallet: StoreWalletResponse | null;
+  initialWallet?: StoreWalletResponse | null;
   initialError?: string;
 }
 
@@ -101,8 +105,12 @@ function formatBalanceAmount(value: string) {
   return `${groupedInteger}.${trimmedDecimal}`;
 }
 
-export function WalletDetailView({ initialWallet, initialError }: WalletDetailViewProps) {
+export function WalletDetailView({
+  initialWallet = null,
+  initialError,
+}: WalletDetailViewProps) {
   const [wallet, setWallet] = useState(initialWallet);
+  const [isInitialLoading, setIsInitialLoading] = useState(!initialWallet && !initialError);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(initialError ?? null);
@@ -232,6 +240,45 @@ export function WalletDetailView({ initialWallet, initialError }: WalletDetailVi
       ? balanceLabel
       : null;
 
+  useEffect(() => {
+    if (initialWallet || initialError) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    async function loadWallet() {
+      setIsInitialLoading(true);
+
+      try {
+        const result = await fetchStoreWallet({ cache: "no-store" });
+        if (isCancelled) {
+          return;
+        }
+
+        setWallet(result.data);
+        setErrorMessage(null);
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        setWallet(null);
+        setErrorMessage(readClientError(error, "ウォレット情報の取得に失敗しました。"));
+      } finally {
+        if (!isCancelled) {
+          setIsInitialLoading(false);
+        }
+      }
+    }
+
+    void loadWallet();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [initialError, initialWallet]);
+
   function closeFeedback() {
     setStatusMessage(null);
     setErrorMessage(null);
@@ -245,7 +292,6 @@ export function WalletDetailView({ initialWallet, initialError }: WalletDetailVi
       const result = await fetchStoreWallet({ cache: "no-store" });
       setWallet(result.data);
       await refetchBalance();
-      setStatusMessage("ウォレット情報を更新しました。");
     } catch (error) {
       setErrorMessage(readClientError(error, "ウォレット情報の取得に失敗しました。"));
     } finally {
@@ -255,6 +301,10 @@ export function WalletDetailView({ initialWallet, initialError }: WalletDetailVi
 
   return (
     <Stack spacing={3}>
+      <LoadingOverlay
+        open={isInitialLoading || isRefreshing}
+        label={isRefreshing ? "更新中..." : "読み込み中..."}
+      />
       <FeedbackBanner
         message={errorMessage}
         severity="error"
@@ -279,7 +329,11 @@ export function WalletDetailView({ initialWallet, initialError }: WalletDetailVi
         </Button>
       </Stack>
 
-      {wallet === null ? (
+      {isInitialLoading ? (
+        <Alert severity="info" variant="outlined">
+          ウォレット情報を読み込み中です。
+        </Alert>
+      ) : wallet === null ? (
         <Alert severity="info" variant="outlined">
           登録済みのウォレットはまだありません。
         </Alert>

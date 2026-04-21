@@ -3,8 +3,9 @@
 :root {
   --background: #f2f4ef;
   --foreground: #13211d;
+  --font-body: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  --font-heading: "Space Grotesk", "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
   --font-sans: var(--font-body);
-  --font-heading: var(--font-heading);
   --font-mono: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
 }
 

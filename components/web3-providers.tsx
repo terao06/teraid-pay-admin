@@ -2,23 +2,18 @@
 
 import "@rainbow-me/rainbowkit/styles.css";
 
-import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useState } from "react";
 import { WagmiProvider } from "wagmi";
-import { mainnet, polygon, polygonAmoy, sepolia } from "wagmi/chains";
 
-const config = getDefaultConfig({
-  appName: "Teraid Pay Admin",
-  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID ?? "",
-  chains: [polygon, polygonAmoy, sepolia, mainnet],
-  ssr: true,
-});
-
-const queryClient = new QueryClient();
+import { wagmiConfig } from "@/lib/wagmi-config";
 
 export function Web3Providers({ children }: { children: React.ReactNode }) {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>{children}</RainbowKitProvider>
       </QueryClientProvider>
