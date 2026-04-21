@@ -5,6 +5,7 @@ import {
   TERAID_PAY_API_BASE_URL,
 } from "@/features/store-wallet/domain/config";
 import type {
+  DeleteWalletSuccessResponse,
   StoreWalletSuccessResponse,
   StoreWalletResponse,
   StoreWalletVerifyRequest,
@@ -147,6 +148,15 @@ export async function verifyStoreWallet(payload: StoreWalletVerifyRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
+    },
+  );
+}
+
+export async function deleteStoreWallet(walletId: number) {
+  return readJsonOrThrow<DeleteWalletSuccessResponse>(
+    createStoreApiUrl(`/store/${STORE_ID}/wallet/${walletId}`),
+    {
+      method: "DELETE",
     },
   );
 }

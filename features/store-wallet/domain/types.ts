@@ -11,8 +11,7 @@ export interface HttpValidationError {
 }
 
 export interface StoreWalletResponse {
-  store_wallet_id: number;
-  store_id: number;
+  wallet_id: number;
   wallet_address: string;
   chain_type: string;
   network_name: string;
@@ -63,6 +62,11 @@ export interface WalletNonceCreateSuccessResponse {
 export interface StoreWalletVerifySuccessResponse {
   status: ApiStatus;
   data: StoreWalletVerifyResponse;
+}
+
+export interface DeleteWalletSuccessResponse {
+  status: ApiStatus;
+  data: null;
 }
 
 export interface ApiErrorResponse extends HttpValidationError {

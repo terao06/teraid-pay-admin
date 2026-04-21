@@ -7,6 +7,10 @@ import {
   Button,
   Chip,
   Divider,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Paper,
   Stack,
   Typography,
@@ -16,6 +20,7 @@ import type { Address } from "viem";
 import { useBalance } from "wagmi";
 
 import {
+  deleteStoreWallet,
   fetchStoreWallet,
   readClientError,
 } from "@/features/store-wallet/api/client";
@@ -89,6 +94,26 @@ function resolveJpycTokenAddress(chainType: string, networkName: string) {
   return undefined;
 }
 
+function resolveRpcUrl(chainType: string, networkName: string) {
+  if (chainType === "ethereum" && networkName === "mainnet") {
+    return process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_MAINNET;
+  }
+
+  if (chainType === "ethereum" && networkName === "sepolia") {
+    return process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA;
+  }
+
+  if (chainType === "polygon" && networkName === "polygon") {
+    return process.env.NEXT_PUBLIC_RPC_URL_POLYGON_MAINNET;
+  }
+
+  if (chainType === "polygon" && networkName === "amoy") {
+    return process.env.NEXT_PUBLIC_RPC_URL_POLYGON_AMOY;
+  }
+
+  return undefined;
+}
+
 function formatBalanceAmount(value: string) {
   const [integerPart, decimalPart] = value.split(".");
   const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -112,6 +137,8 @@ export function WalletDetailView({
   const [wallet, setWallet] = useState(initialWallet);
   const [isInitialLoading, setIsInitialLoading] = useState(!initialWallet && !initialError);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(initialError ?? null);
   const hasMounted = useSyncExternalStore(
@@ -127,6 +154,9 @@ export function WalletDetailView({
   const jpycTokenAddress = wallet
     ? resolveJpycTokenAddress(wallet.chain_type, wallet.network_name)
     : undefined;
+  const rpcUrl = wallet
+    ? resolveRpcUrl(wallet.chain_type, wallet.network_name)
+    : undefined;
 
   const walletAddress: Address | undefined =
     wallet && isAddress(wallet.wallet_address)
@@ -140,6 +170,7 @@ export function WalletDetailView({
   const canReadBalance = Boolean(
     wallet &&
       chainId &&
+      rpcUrl &&
       walletAddress &&
       jpycTokenContractAddress,
   );
@@ -169,6 +200,10 @@ export function WalletDetailView({
 
     if (!jpycTokenAddress) {
       return "JPYCトークン未設定";
+    }
+
+    if (!rpcUrl) {
+      return "RPCエンドポイント未設定";
     }
 
     if (!isAddress(jpycTokenAddress)) {
@@ -207,6 +242,10 @@ export function WalletDetailView({
 
     if (!jpycTokenAddress) {
       return "JPYCトークン未設定";
+    }
+
+    if (!rpcUrl) {
+      return "RPCエンドポイント未設定";
     }
 
     if (!isAddress(jpycTokenAddress)) {
@@ -299,11 +338,43 @@ export function WalletDetailView({
     }
   }
 
+  function openDeleteDialog() {
+    setIsDeleteDialogOpen(true);
+  }
+
+  function closeDeleteDialog() {
+    if (isDeleting) {
+      return;
+    }
+
+    setIsDeleteDialogOpen(false);
+  }
+
+  async function handleDeleteWallet() {
+    if (!wallet || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setErrorMessage(null);
+
+    try {
+      await deleteStoreWallet(wallet.wallet_id);
+      setWallet(null);
+      setStatusMessage("ウォレットを削除しました。");
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      setErrorMessage(readClientError(error, "ウォレットの削除に失敗しました。"));
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <Stack spacing={3}>
       <LoadingOverlay
-        open={isInitialLoading || isRefreshing}
-        label={isRefreshing ? "更新中..." : "読み込み中..."}
+        open={isInitialLoading || isRefreshing || isDeleting}
+        label={isDeleting ? "削除中..." : isRefreshing ? "更新中..." : "読み込み中..."}
       />
       <FeedbackBanner
         message={errorMessage}
@@ -324,9 +395,21 @@ export function WalletDetailView({
         <Box>
           <Typography variant="h4">ウォレット詳細</Typography>
         </Box>
-        <Button onClick={refreshWallet} variant="contained" disabled={isRefreshing}>
-          {isRefreshing ? "更新中..." : "再読み込み"}
-        </Button>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+          {wallet ? (
+            <Button
+              onClick={openDeleteDialog}
+              variant="outlined"
+              color="error"
+              disabled={isRefreshing || isDeleting}
+            >
+              削除
+            </Button>
+          ) : null}
+          <Button onClick={refreshWallet} variant="contained" disabled={isRefreshing || isDeleting}>
+            {isRefreshing ? "更新中..." : "再読み込み"}
+          </Button>
+        </Stack>
       </Stack>
 
       {isInitialLoading ? (
@@ -343,7 +426,7 @@ export function WalletDetailView({
             label="Wallet ID"
             value={
               <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                #{wallet.store_wallet_id}
+                #{wallet.wallet_id}
               </Typography>
             }
           />
@@ -459,6 +542,38 @@ export function WalletDetailView({
           />
         </Paper>
       )}
+
+      <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog} fullWidth maxWidth="xs">
+        <DialogTitle>ウォレットを削除しますか？</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5}>
+            <Typography variant="body2" color="text.secondary">
+              削除後は登録情報が画面から消えます。必要な場合は再度ウォレット登録を行ってください。
+            </Typography>
+            {wallet ? (
+              <Typography
+                variant="body2"
+                sx={{ fontFamily: "var(--font-mono)", wordBreak: "break-all" }}
+              >
+                {wallet.wallet_address}
+              </Typography>
+            ) : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} disabled={isDeleting}>
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleDeleteWallet}
+            color="error"
+            variant="contained"
+            disabled={isDeleting || !wallet}
+          >
+            {isDeleting ? "削除中..." : "削除する"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }
