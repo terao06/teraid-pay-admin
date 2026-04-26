@@ -15,6 +15,8 @@ export interface StoreWalletResponse {
   wallet_address: string;
   chain_type: string;
   network_name: string;
+  token_symbol: string;
+  chain_id: number;
   is_active: boolean;
   verified_at: string | null;
   created_at: string;
@@ -25,6 +27,8 @@ export interface WalletNonceCreateRequest {
   wallet_address: string;
   chain_type: string;
   network_name: string;
+  token_symbol: string;
+  chain_id: number;
 }
 
 export interface WalletNonceCreateResponse {
@@ -38,13 +42,16 @@ export interface StoreWalletVerifyRequest {
   signature: string;
   chain_type: string;
   network_name: string;
+  token_symbol: string;
+  chain_id: number;
 }
 
 export interface StoreWalletVerifyResponse {
   wallet_address: string;
   chain_type: string;
   network_name: string;
-  is_primary: boolean;
+  token_symbol: string;
+  chain_id: number;
   is_active: boolean;
   verified_at: string;
 }

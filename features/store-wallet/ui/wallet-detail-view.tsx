@@ -54,27 +54,15 @@ function DetailRow({ label, value }: DetailRowProps) {
   );
 }
 
-function resolveChainId(chainType: string, networkName: string) {
-  if (chainType === "ethereum" && networkName === "sepolia") {
-    return 11155111;
+function resolveTokenAddress(
+  tokenSymbol: string,
+  chainType: string,
+  networkName: string,
+) {
+  if (tokenSymbol.toUpperCase() !== "JPYC") {
+    return undefined;
   }
 
-  if (chainType === "ethereum" && networkName === "mainnet") {
-    return 1;
-  }
-
-  if (chainType === "polygon" && networkName === "polygon") {
-    return 137;
-  }
-
-  if (chainType === "polygon" && networkName === "amoy") {
-    return 80002;
-  }
-
-  return undefined;
-}
-
-function resolveJpycTokenAddress(chainType: string, networkName: string) {
   if (chainType === "ethereum" && networkName === "mainnet") {
     return process.env.NEXT_PUBLIC_JPYC_TOKEN_ADDRESS_ETHEREUM_MAINNET;
   }
@@ -148,11 +136,11 @@ export function WalletDetailView({
   );
 
   const chainId = wallet
-    ? resolveChainId(wallet.chain_type, wallet.network_name)
+    ? wallet.chain_id
     : undefined;
 
-  const jpycTokenAddress = wallet
-    ? resolveJpycTokenAddress(wallet.chain_type, wallet.network_name)
+  const tokenAddress = wallet
+    ? resolveTokenAddress(wallet.token_symbol, wallet.chain_type, wallet.network_name)
     : undefined;
   const rpcUrl = wallet
     ? resolveRpcUrl(wallet.chain_type, wallet.network_name)
@@ -163,8 +151,8 @@ export function WalletDetailView({
       ? wallet.wallet_address
       : undefined;
   const jpycTokenContractAddress: Address | undefined =
-    jpycTokenAddress && isAddress(jpycTokenAddress)
-      ? jpycTokenAddress
+    tokenAddress && isAddress(tokenAddress)
+      ? tokenAddress
       : undefined;
 
   const canReadBalance = Boolean(
@@ -198,16 +186,16 @@ export function WalletDetailView({
       return "未対応ネットワーク";
     }
 
-    if (!jpycTokenAddress) {
-      return "JPYCトークン未設定";
+    if (!tokenAddress) {
+      return `${wallet.token_symbol}トークン未設定`;
     }
 
     if (!rpcUrl) {
       return "RPCエンドポイント未設定";
     }
 
-    if (!isAddress(jpycTokenAddress)) {
-      return "JPYCアドレス設定エラー";
+    if (!isAddress(tokenAddress)) {
+      return `${wallet.token_symbol}アドレス設定エラー`;
     }
 
     if (!isAddress(wallet.wallet_address)) {
@@ -226,7 +214,7 @@ export function WalletDetailView({
       return "--";
     }
 
-    return `${balance.formatted} ${balance.symbol ?? "JPYC"}`;
+    return `${balance.formatted} ${balance.symbol ?? wallet.token_symbol}`;
   })();
 
   const formattedBalanceNumber = balance ? formatBalanceAmount(balance.formatted) : "--";
@@ -240,16 +228,16 @@ export function WalletDetailView({
       return "未対応ネットワーク";
     }
 
-    if (!jpycTokenAddress) {
-      return "JPYCトークン未設定";
+    if (!tokenAddress) {
+      return `${wallet.token_symbol}トークン未設定`;
     }
 
     if (!rpcUrl) {
       return "RPCエンドポイント未設定";
     }
 
-    if (!isAddress(jpycTokenAddress)) {
-      return "JPYCアドレス設定エラー";
+    if (!isAddress(tokenAddress)) {
+      return `${wallet.token_symbol}アドレス設定エラー`;
     }
 
     if (!isAddress(wallet.wallet_address)) {
@@ -454,7 +442,17 @@ export function WalletDetailView({
           />
           <Divider />
           <DetailRow
-            label="JPYC Balance"
+            label="Chain ID"
+            value={<Typography variant="body2">{wallet.chain_id}</Typography>}
+          />
+          <Divider />
+          <DetailRow
+            label="Token Symbol"
+            value={<Typography variant="body2">{wallet.token_symbol}</Typography>}
+          />
+          <Divider />
+          <DetailRow
+            label={`${wallet.token_symbol} Balance`}
             value={(
               <Box
                 sx={{
@@ -472,7 +470,7 @@ export function WalletDetailView({
                     <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
                       残高
                     </Typography>
-                    <Chip size="small" label="JPYC" color="primary" sx={{ fontWeight: 700 }} />
+                    <Chip size="small" label={wallet.token_symbol} color="primary" sx={{ fontWeight: 700 }} />
                   </Stack>
                   <Stack direction="row" spacing={1} sx={{ alignItems: "baseline" }}>
                     <Typography
@@ -487,7 +485,7 @@ export function WalletDetailView({
                       {displayBalanceNumber}
                     </Typography>
                     <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                      JPYC
+                      {wallet.token_symbol}
                     </Typography>
                   </Stack>
                   <Typography variant="caption" color="text.secondary">

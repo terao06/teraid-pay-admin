@@ -1,6 +1,8 @@
 import {
   DEFAULT_CHAIN_TYPE,
+  DEFAULT_CHAIN_ID,
   DEFAULT_NETWORK_NAME,
+  DEFAULT_TOKEN_SYMBOL,
   STORE_ID,
   TERAID_PAY_API_BASE_URL,
 } from "@/features/store-wallet/domain/config";
@@ -188,5 +190,7 @@ export function getDefaultWalletProfile() {
   return {
     chainType: DEFAULT_CHAIN_TYPE,
     networkName: DEFAULT_NETWORK_NAME,
+    tokenSymbol: DEFAULT_TOKEN_SYMBOL,
+    chainId: DEFAULT_CHAIN_ID,
   };
 }

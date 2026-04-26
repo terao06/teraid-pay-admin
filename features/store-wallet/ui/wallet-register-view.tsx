@@ -96,24 +96,32 @@ export function WalletRegisterView() {
       label: "Ethereum / Sepolia",
       chainType: "ethereum",
       networkName: "sepolia",
+      tokenSymbol: "JPYC",
+      chainId: 11155111,
     },
     {
       key: "ethereum-mainnet",
       label: "Ethereum / Mainnet",
       chainType: "ethereum",
       networkName: "mainnet",
+      tokenSymbol: "JPYC",
+      chainId: 1,
     },
     {
       key: "polygon-amoy",
       label: "Polygon / Amoy",
       chainType: "polygon",
       networkName: "amoy",
+      tokenSymbol: "JPYC",
+      chainId: 80002,
     },
     {
       key: "polygon-mainnet",
       label: "Polygon / Polygon Mainnet",
       chainType: "polygon",
       networkName: "polygon",
+      tokenSymbol: "JPYC",
+      chainId: 137,
     },
   ] as const;
   const [selectedNetworkKey, setSelectedNetworkKey] = useState<string>("");
@@ -130,9 +138,15 @@ export function WalletRegisterView() {
 
   useEffect(() => {
     if (!hasConnectedWallet) {
-      setSelectedNetworkKey("");
-      setNonceData(null);
-      setIsRegistrationCompleted(false);
+      const resetTimer = window.setTimeout(() => {
+        setSelectedNetworkKey("");
+        setNonceData(null);
+        setIsRegistrationCompleted(false);
+      }, 0);
+
+      return () => {
+        window.clearTimeout(resetTimer);
+      };
     }
   }, [hasConnectedWallet]);
 
@@ -201,6 +215,8 @@ export function WalletRegisterView() {
         wallet_address: walletAddress,
         chain_type: selectedNetwork.chainType,
         network_name: selectedNetwork.networkName,
+        token_symbol: selectedNetwork.tokenSymbol,
+        chain_id: selectedNetwork.chainId,
       });
 
       setNonceData(result.data);
@@ -246,6 +262,8 @@ export function WalletRegisterView() {
         signature,
         chain_type: selectedNetwork.chainType,
         network_name: selectedNetwork.networkName,
+        token_symbol: selectedNetwork.tokenSymbol,
+        chain_id: selectedNetwork.chainId,
       });
 
       resetRegistrationScreen();
