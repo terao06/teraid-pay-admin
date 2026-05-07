@@ -10,7 +10,7 @@ declare global {
 
 function createWagmiConfig(): WagmiConfig {
   return getDefaultConfig({
-    appName: "Teraid Pay Admin",
+    appName: "TeraiD Pay Admin",
     projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID ?? "",
     chains: [polygon, polygonAmoy, sepolia, mainnet],
     transports: {

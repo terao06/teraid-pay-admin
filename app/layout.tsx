@@ -4,8 +4,8 @@ import { Web3Providers } from "@/components/web3-providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Teraid Pay Admin",
-  description: "Wallet linking dashboard for Teraid Pay store administrators.",
+  title: "TeraiD Pay Admin",
+  description: "Wallet linking dashboard for TeraiD Pay store administrators.",
 };
 
 export default function RootLayout({

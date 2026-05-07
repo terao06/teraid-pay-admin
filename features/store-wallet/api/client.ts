@@ -4,7 +4,7 @@ import {
   DEFAULT_NETWORK_NAME,
   DEFAULT_TOKEN_SYMBOL,
   STORE_ID,
-  TERAID_PAY_API_BASE_URL,
+  TeraiD_PAY_API_BASE_URL,
 } from "@/features/store-wallet/domain/config";
 import type {
   DeleteWalletSuccessResponse,
@@ -89,7 +89,7 @@ export function readClientError(error: unknown, fallback: string) {
 }
 
 function createStoreApiUrl(pathname: string) {
-  return `${TERAID_PAY_API_BASE_URL}${pathname}`;
+  return `${TeraiD_PAY_API_BASE_URL}${pathname}`;
 }
 
 async function readJsonOrThrow<T>(

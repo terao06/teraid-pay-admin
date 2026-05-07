@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Teraid Pay API
+  title: TeraiD Pay API
   version: 1.0.0
   description: 店舗ウォレット API の Swagger 定義。
 servers:

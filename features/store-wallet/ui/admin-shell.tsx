@@ -31,7 +31,7 @@ export function AdminShell({ children }: AdminShellProps) {
           }}
         >
           <Typography variant="h6" sx={{ fontWeight: 800, px: 1.25, pb: 2 }}>
-            Teraid Pay
+            TeraiD Pay Admin
           </Typography>
           <AdminNav />
         </Box>
