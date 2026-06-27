@@ -100,12 +100,12 @@ export function WalletRegisterView() {
       chainId: 11155111,
     },
     {
-      key: "ethereum-mainnet",
-      label: "Ethereum / Mainnet",
-      chainType: "ethereum",
-      networkName: "mainnet",
+      key: "avalanche-fuji",
+      label: "Avalanche / Fuji",
+      chainType: "avalanche",
+      networkName: "fuji",
       tokenSymbol: "JPYC",
-      chainId: 1,
+      chainId: 43113,
     },
     {
       key: "polygon-amoy",
@@ -114,14 +114,6 @@ export function WalletRegisterView() {
       networkName: "amoy",
       tokenSymbol: "JPYC",
       chainId: 80002,
-    },
-    {
-      key: "polygon-mainnet",
-      label: "Polygon / Polygon Mainnet",
-      chainType: "polygon",
-      networkName: "polygon",
-      tokenSymbol: "JPYC",
-      chainId: 137,
     },
   ] as const;
   const [selectedNetworkKey, setSelectedNetworkKey] = useState<string>("");

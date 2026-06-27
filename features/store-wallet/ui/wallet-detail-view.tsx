@@ -68,7 +68,11 @@ function resolveTokenAddress(
   }
 
   if (chainType === "ethereum" && networkName === "sepolia") {
-    return process.env.NEXT_PUBLIC_JPYC_TOKEN_ADDRESS_ETHEREUM_SEPOLIA;
+    return process.env.NEXT_PUBLIC_JPYC_TOKEN_ADDRESS;
+  }
+
+  if (chainType === "avalanche" && networkName === "fuji") {
+    return process.env.NEXT_PUBLIC_JPYC_TOKEN_ADDRESS;
   }
 
   if (chainType === "polygon" && networkName === "polygon") {
@@ -76,23 +80,19 @@ function resolveTokenAddress(
   }
 
   if (chainType === "polygon" && networkName === "amoy") {
-    return process.env.NEXT_PUBLIC_JPYC_TOKEN_ADDRESS_POLYGON_AMOY;
+    return process.env.NEXT_PUBLIC_JPYC_TOKEN_ADDRESS;
   }
 
   return undefined;
 }
 
 function resolveRpcUrl(chainType: string, networkName: string) {
-  if (chainType === "ethereum" && networkName === "mainnet") {
-    return process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_MAINNET;
-  }
-
   if (chainType === "ethereum" && networkName === "sepolia") {
     return process.env.NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA;
   }
 
-  if (chainType === "polygon" && networkName === "polygon") {
-    return process.env.NEXT_PUBLIC_RPC_URL_POLYGON_MAINNET;
+  if (chainType === "avalanche" && networkName === "fuji") {
+    return process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_FUJI;
   }
 
   if (chainType === "polygon" && networkName === "amoy") {
