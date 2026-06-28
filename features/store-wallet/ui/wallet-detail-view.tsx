@@ -381,7 +381,7 @@ export function WalletDetailView({
         sx={{ justifyContent: "space-between", alignItems: { xs: "stretch", md: "center" } }}
       >
         <Box>
-          <Typography variant="h4">ウォレット詳細</Typography>
+          <Typography variant="h4">加盟店側ウォレット詳細</Typography>
         </Box>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
           {wallet ? (
