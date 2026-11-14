@@ -79,10 +79,6 @@ function resolveTokenAddress(
     return process.env.NEXT_PUBLIC_JPYC_TOKEN_ADDRESS_POLYGON_MAINNET;
   }
 
-  if (chainType === "polygon" && networkName === "amoy") {
-    return process.env.NEXT_PUBLIC_JPYC_TOKEN_ADDRESS;
-  }
-
   return undefined;
 }
 
@@ -93,10 +89,6 @@ function resolveRpcUrl(chainType: string, networkName: string) {
 
   if (chainType === "avalanche" && networkName === "fuji") {
     return process.env.NEXT_PUBLIC_RPC_URL_AVALANCHE_FUJI;
-  }
-
-  if (chainType === "polygon" && networkName === "amoy") {
-    return process.env.NEXT_PUBLIC_RPC_URL_POLYGON_AMOY;
   }
 
   return undefined;

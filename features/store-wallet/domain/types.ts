@@ -18,9 +18,29 @@ export interface StoreWalletResponse {
   token_symbol: string;
   chain_id: number;
   is_active: boolean;
+  is_permitted: boolean;
   verified_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface StoreManagerInfo {
+  store_manager_id: number;
+  store_id: number;
+  name: string;
+  roll_id: number;
+}
+
+export interface StoreManagerLoginResponse {
+  access_token: string;
+  token_type: "Bearer";
+  expires_in: number;
+  store_manager: StoreManagerInfo;
+}
+
+export interface StoreManagerLoginSuccessResponse {
+  status: ApiStatus;
+  data: StoreManagerLoginResponse;
 }
 
 export interface WalletNonceCreateRequest {
@@ -58,7 +78,7 @@ export interface StoreWalletVerifyResponse {
 
 export interface StoreWalletSuccessResponse {
   status: ApiStatus;
-  data: StoreWalletResponse;
+  data: StoreWalletResponse | null;
 }
 
 export interface WalletNonceCreateSuccessResponse {

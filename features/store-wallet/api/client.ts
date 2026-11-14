@@ -3,18 +3,23 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_NETWORK_NAME,
   DEFAULT_TOKEN_SYMBOL,
-  STORE_ID,
   TeraiD_PAY_API_BASE_URL,
 } from "@/features/store-wallet/domain/config";
+import {
+  clearAuthSession,
+  getAccessToken,
+} from "@/features/store-wallet/auth/session";
 import type {
   DeleteWalletSuccessResponse,
   StoreWalletSuccessResponse,
-  StoreWalletResponse,
+  StoreManagerLoginSuccessResponse,
   StoreWalletVerifyRequest,
   StoreWalletVerifySuccessResponse,
   WalletNonceCreateRequest,
   WalletNonceCreateSuccessResponse,
 } from "@/features/store-wallet/domain/types";
+
+export const AUTH_UNAUTHORIZED_EVENT = "teraid-pay:auth-unauthorized";
 
 function extractApiErrorMessage(payload: unknown) {
   if (!payload || typeof payload !== "object") {
@@ -95,6 +100,7 @@ function createStoreApiUrl(pathname: string) {
 async function readJsonOrThrow<T>(
   input: RequestInfo,
   init?: RequestInit,
+  redirectOnUnauthorized = true,
 ): Promise<T> {
   const response = await fetch(input, init);
   const rawText = await response.text();
@@ -111,6 +117,10 @@ async function readJsonOrThrow<T>(
   })();
 
   if (!response.ok) {
+    if (response.status === 401 && redirectOnUnauthorized && typeof window !== "undefined") {
+      clearAuthSession();
+      window.dispatchEvent(new Event(AUTH_UNAUTHORIZED_EVENT));
+    }
     throw new Error(buildHttpErrorMessage(response, payload, rawText));
   }
 
@@ -121,69 +131,70 @@ async function readJsonOrThrow<T>(
   return payload as T;
 }
 
+function withAuthorization(init: RequestInit = {}): RequestInit {
+  const accessToken = getAccessToken();
+  const headers = new Headers(init.headers);
+
+  if (!accessToken) {
+    throw new Error("ログインセッションがありません。再度ログインしてください。");
+  }
+
+  headers.set("Authorization", `Bearer ${accessToken}`);
+  return { ...init, headers };
+}
+
+export async function loginStoreManager(email: string, password: string) {
+  return readJsonOrThrow<StoreManagerLoginSuccessResponse>(
+    createStoreApiUrl("/store/manager/login"),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    },
+    false,
+  );
+}
+
 export async function fetchStoreWallet(init?: RequestInit) {
   return readJsonOrThrow<StoreWalletSuccessResponse>(
-    createStoreApiUrl(`/store/${STORE_ID}/wallet`),
-    init,
+    createStoreApiUrl("/store/wallet"),
+    withAuthorization(init),
   );
 }
 
 export async function createWalletNonce(payload: WalletNonceCreateRequest) {
   return readJsonOrThrow<WalletNonceCreateSuccessResponse>(
-    createStoreApiUrl(`/store/${STORE_ID}/wallet/nonce`),
-    {
+    createStoreApiUrl("/store/wallet/nonce"),
+    withAuthorization({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
-    },
+    }),
   );
 }
 
 export async function verifyStoreWallet(payload: StoreWalletVerifyRequest) {
   return readJsonOrThrow<StoreWalletVerifySuccessResponse>(
-    createStoreApiUrl(`/store/${STORE_ID}/wallet`),
-    {
+    createStoreApiUrl("/store/wallet"),
+    withAuthorization({
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
-    },
+    }),
   );
 }
 
 export async function deleteStoreWallet(walletId: number) {
   return readJsonOrThrow<DeleteWalletSuccessResponse>(
-    createStoreApiUrl(`/store/${STORE_ID}/wallet/${walletId}`),
-    {
+    createStoreApiUrl(`/store/wallet/${walletId}`),
+    withAuthorization({
       method: "DELETE",
-    },
+    }),
   );
-}
-
-export async function getInitialWallet(): Promise<{
-  initialWallet: StoreWalletResponse | null;
-  initialError?: string;
-}> {
-  try {
-    const result = await fetchStoreWallet({
-      cache: "no-store",
-    });
-
-    return {
-      initialWallet: result.data,
-    };
-  } catch (error) {
-    return {
-      initialWallet: null,
-      initialError: readClientError(
-        error,
-        "ウォレット情報の取得に失敗しました。",
-      ),
-    };
-  }
 }
 
 export function getDefaultWalletProfile() {

@@ -17,7 +17,8 @@ import {
   Typography,
 } from "@mui/material";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useDisconnect, useSignMessage } from "wagmi";
+import { isAddress, type Address } from "viem";
+import { useAccount, useBalance, useDisconnect, useSignMessage } from "wagmi";
 
 import {
   createWalletNonce,
@@ -76,6 +77,14 @@ function StepFlowArrow({ isActive }: StepFlowArrowProps) {
   );
 }
 
+function formatBalanceAmount(value: string) {
+  const [integerPart, decimalPart] = value.split(".");
+  const groupedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const trimmedDecimal = decimalPart?.replace(/0+$/, "").slice(0, 4);
+
+  return trimmedDecimal ? `${groupedInteger}.${trimmedDecimal}` : groupedInteger;
+}
+
 export function WalletRegisterView() {
   const { address: connectedAddress } = useAccount();
   const { disconnect } = useDisconnect();
@@ -107,18 +116,28 @@ export function WalletRegisterView() {
       tokenSymbol: "JPYC",
       chainId: 43113,
     },
-    {
-      key: "polygon-amoy",
-      label: "Polygon / Amoy",
-      chainType: "polygon",
-      networkName: "amoy",
-      tokenSymbol: "JPYC",
-      chainId: 80002,
-    },
   ] as const;
   const [selectedNetworkKey, setSelectedNetworkKey] = useState<string>("");
   const walletAddress = connectedAddress ?? "";
   const selectedNetwork = networkOptions.find((option) => option.key === selectedNetworkKey);
+  const configuredTokenAddress = process.env.NEXT_PUBLIC_JPYC_TOKEN_ADDRESS;
+  const tokenAddress: Address | undefined =
+    configuredTokenAddress && isAddress(configuredTokenAddress)
+      ? configuredTokenAddress
+      : undefined;
+  const canReadSelectedNetworkBalance = Boolean(
+    connectedAddress && selectedNetwork && tokenAddress,
+  );
+  const {
+    data: selectedNetworkBalance,
+    error: selectedNetworkBalanceError,
+    isFetching: isSelectedNetworkBalanceFetching,
+  } = useBalance({
+    address: connectedAddress,
+    chainId: selectedNetwork?.chainId,
+    token: tokenAddress,
+    query: { enabled: canReadSelectedNetworkBalance },
+  });
 
   // 画面初期化時は接続状態をリセットして Step 1 を未接続から開始する
   useEffect(() => {
@@ -351,6 +370,32 @@ export function WalletRegisterView() {
               ))}
             </Select>
           </FormControl>
+          {selectedNetwork ? (
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                border: "1px solid",
+                borderColor: "divider",
+                bgcolor: "grey.50",
+              }}
+            >
+              <Typography variant="caption" color="text.secondary">
+                {selectedNetwork.label} の{selectedNetwork.tokenSymbol}残高
+              </Typography>
+              <Typography variant="h6" sx={{ mt: 0.5, fontWeight: 800 }}>
+                {!tokenAddress
+                  ? "トークンアドレス未設定"
+                  : isSelectedNetworkBalanceFetching
+                    ? "取得中..."
+                    : selectedNetworkBalanceError
+                      ? "取得できませんでした"
+                      : selectedNetworkBalance
+                        ? `${formatBalanceAmount(selectedNetworkBalance.formatted)} ${selectedNetworkBalance.symbol}`
+                        : "--"}
+              </Typography>
+            </Box>
+          ) : null}
           <Typography variant="body2" color="text.secondary">
             署名情報の作成と登録は、ここで選択したネットワークで実行されます。
           </Typography>

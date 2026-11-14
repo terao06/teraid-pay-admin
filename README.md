@@ -2,13 +2,15 @@
 
 TeraiD Pay の店舗ウォレットを管理するための Next.js 管理画面です。
 
-現在の画面では、店舗 ID `104` のウォレット情報を確認し、ウォレットの登録・削除を行えます。ウォレット接続には `wagmi` と `RainbowKit` を使用しています。
+店舗管理者としてログインし、JWT に紐づく店舗のウォレット情報を確認・登録・削除できます。ウォレット接続には `wagmi` と `RainbowKit` を使用しています。
 
 ## 主な機能
 
 - 登録済み店舗ウォレットの確認
 - 店舗ウォレットの新規登録
 - 登録済みウォレットの削除
+- 店舗管理者のログイン・ログアウト
+- JWT Bearer 認証による管理者 API へのアクセス
 - TeraiD Pay API との連携
 - Sepolia / JPYC を前提にしたウォレット設定
 
@@ -65,7 +67,7 @@ npm run dev
 npm run build
 ```
 
-本番用にビルドします。`next.config.ts` で `output: "export"` を指定しているため、ビルド結果は `out/` に静的ファイルとして出力されます。
+本番用にビルドします。開発時と同様に Webpack を使用し、`next.config.ts` の `output: "export"` によりビルド結果は `out/` に静的ファイルとして出力されます。
 
 ```bash
 npm run start
@@ -81,6 +83,8 @@ ESLint を実行します。
 
 ## 画面構成
 
+- `/login`
+  店舗管理者のログイン画面です。
 - `/`  
   登録済み店舗ウォレットの詳細画面です。
 - `/register`  
@@ -108,17 +112,18 @@ public/                       静的ファイル
 features/store-wallet/domain/config.ts
 ```
 
-現在の主な固定値は次のとおりです。
+現在の主な固定値は次のとおりです。店舗 ID は固定値ではなく、ログインで発行された JWT から API 側が判定します。
 
 | 項目 | 値 |
 | --- | --- |
-| 店舗 ID | `104` |
 | チェーン種別 | `ethereum` |
 | ネットワーク | `sepolia` |
 | トークン | `JPYC` |
 | チェーン ID | `11155111` |
 
 API のベース URL は `NEXT_PUBLIC_TERAID_PAY_API_BASE_URL` で上書きできます。
+
+ログイン成功時の JWT と管理者情報はブラウザの `sessionStorage` に保存されます。タブを閉じた場合、JWT の有効期限が切れた場合、または管理者 API が `401` を返した場合は再ログインが必要です。
 
 ## 環境変数
 
@@ -130,8 +135,7 @@ API のベース URL は `NEXT_PUBLIC_TERAID_PAY_API_BASE_URL` で上書きで�
 | `NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID` | 必須 | RainbowKit / WalletConnect でウォレット接続を行うための Project ID です。WalletConnect Cloud で取得した値を設定します。 |
 | `NEXT_PUBLIC_RPC_URL_ETHEREUM_SEPOLIA` | 推奨 | Ethereum Sepolia に接続する RPC URL です。現在のデフォルトネットワークが Sepolia のため、開発時は設定してください。 |
 | `NEXT_PUBLIC_RPC_URL_AVALANCHE_FUJI` | 推奨 | Avalanche Fuji に接続する RPC URL です。Fuji のウォレット情報を扱う場合に使用します。 |
-| `NEXT_PUBLIC_RPC_URL_POLYGON_AMOY` | 推奨 | Polygon Amoy に接続する RPC URL です。Amoy のウォレット情報を扱う場合に使用します。例: `https://rpc-amoy.polygon.technology` |
-| `NEXT_PUBLIC_JPYC_TOKEN_ADDRESS` | 条件付き | Ethereum Sepolia / Avalanche Fuji / Polygon Amoy 上の JPYC トークンコントラクトアドレスです。対象ウォレットが Sepolia、Fuji、Amoy の JPYC の場合に残高表示で使用します。 |
+| `NEXT_PUBLIC_JPYC_TOKEN_ADDRESS` | 条件付き | Ethereum Sepolia / Avalanche Fuji 上の JPYC トークンコントラクトアドレスです。対象ウォレットが Sepolia または Fuji の JPYC の場合に残高表示で使用します。 |
 | `NEXT_PUBLIC_JPYC_TOKEN_ADDRESS_ETHEREUM_MAINNET` | 条件付き | Ethereum Mainnet 上の JPYC トークンコントラクトアドレスです。対象ウォレットの `chainType` が `ethereum`、`networkName` が `mainnet`、`tokenSymbol` が `JPYC` の場合に残高表示で使用します。 |
 | `NEXT_PUBLIC_JPYC_TOKEN_ADDRESS_POLYGON_MAINNET` | 条件付き | Polygon Mainnet 上の JPYC トークンコントラクトアドレスです。対象ウォレットが Polygon Mainnet の JPYC の場合に使用します。 |
 
@@ -156,7 +160,6 @@ JPYC のトークンコントラクトアドレスは、設定するネットワ
 | Ethereum Sepolia | `NEXT_PUBLIC_JPYC_TOKEN_ADDRESS` |
 | Avalanche Fuji | `NEXT_PUBLIC_JPYC_TOKEN_ADDRESS` |
 | Polygon Mainnet | `NEXT_PUBLIC_JPYC_TOKEN_ADDRESS_POLYGON_MAINNET` |
-| Polygon Amoy | `NEXT_PUBLIC_JPYC_TOKEN_ADDRESS` |
 
 注意点:
 

@@ -1,5 +1,9 @@
-import { Box, Stack, Typography } from "@mui/material";
+"use client";
 
+import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
+import { Box, Button, Divider, Stack, Typography } from "@mui/material";
+
+import { useAuth } from "@/features/store-wallet/auth/auth-provider";
 import { AdminNav } from "@/features/store-wallet/ui/admin-nav";
 
 interface AdminShellProps {
@@ -7,6 +11,8 @@ interface AdminShellProps {
 }
 
 export function AdminShell({ children }: AdminShellProps) {
+  const { session, signOut } = useAuth();
+
   return (
     <Box
       sx={{
@@ -34,6 +40,27 @@ export function AdminShell({ children }: AdminShellProps) {
             TeraiD Pay Admin
           </Typography>
           <AdminNav />
+          <Divider sx={{ my: 2 }} />
+          <Stack spacing={1.25} sx={{ px: 1.25 }}>
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                {session?.storeManager.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                店舗 ID: {session?.storeManager.store_id}
+              </Typography>
+            </Box>
+            <Button
+              onClick={signOut}
+              variant="outlined"
+              color="inherit"
+              size="small"
+              startIcon={<LogoutRoundedIcon />}
+              sx={{ justifyContent: "flex-start" }}
+            >
+              ログアウト
+            </Button>
+          </Stack>
         </Box>
 
         <Box
