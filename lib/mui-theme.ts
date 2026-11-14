@@ -3,22 +3,27 @@ import { createTheme } from "@mui/material/styles";
 export const appTheme = createTheme({
   palette: {
     primary: {
-      main: "#0b6b5f",
-      light: "#2c9c8e",
-      dark: "#0a4d45",
+      main: "#18a97b",
+      light: "#55c7a4",
+      dark: "#0d7c5a",
     },
     secondary: {
-      main: "#b45309",
-      light: "#d97706",
-      dark: "#92400e",
+      main: "#6c63ff",
+      light: "#918aff",
+      dark: "#4c43d6",
     },
     background: {
-      default: "#f2f4ef",
-      paper: "#fbfcf8",
+      default: "#f4f7fb",
+      paper: "#ffffff",
     },
+    text: {
+      primary: "#172033",
+      secondary: "#697386",
+    },
+    divider: "#e7ebf2",
   },
   shape: {
-    borderRadius: 14,
+    borderRadius: 16,
   },
   typography: {
     fontFamily: "var(--font-body), sans-serif",
@@ -36,6 +41,11 @@ export const appTheme = createTheme({
       fontFamily: "var(--font-heading), sans-serif",
       fontWeight: 700,
     },
+    h4: {
+      fontFamily: "var(--font-heading), sans-serif",
+      fontWeight: 750,
+      letterSpacing: "-0.025em",
+    },
     button: {
       textTransform: "none",
       fontWeight: 700,
@@ -48,8 +58,9 @@ export const appTheme = createTheme({
       },
       styleOverrides: {
         root: {
-          borderRadius: 10,
-          paddingInline: 16,
+          borderRadius: 12,
+          paddingInline: 18,
+          minHeight: 42,
         },
       },
     },
@@ -64,6 +75,25 @@ export const appTheme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: "none",
+        },
+        outlined: {
+          borderColor: "#e7ebf2",
+          boxShadow: "0 10px 30px rgba(23, 32, 51, 0.045)",
+        },
+      },
+    },
+    MuiAlert: {
+      styleOverrides: {
+        root: {
+          borderRadius: 14,
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          backgroundColor: "#ffffff",
         },
       },
     },

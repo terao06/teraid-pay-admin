@@ -93,11 +93,11 @@ export function readClientError(error: unknown, fallback: string) {
   return fallback;
 }
 
-function createStoreApiUrl(pathname: string) {
+export function createStoreApiUrl(pathname: string) {
   return `${TeraiD_PAY_API_BASE_URL}${pathname}`;
 }
 
-async function readJsonOrThrow<T>(
+export async function readJsonOrThrow<T>(
   input: RequestInfo,
   init?: RequestInit,
   redirectOnUnauthorized = true,
@@ -131,7 +131,7 @@ async function readJsonOrThrow<T>(
   return payload as T;
 }
 
-function withAuthorization(init: RequestInit = {}): RequestInit {
+export function withAuthorization(init: RequestInit = {}): RequestInit {
   const accessToken = getAccessToken();
   const headers = new Headers(init.headers);
 

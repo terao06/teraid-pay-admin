@@ -1,5 +1,5 @@
-import { WalletDetailView } from "@/features/store-wallet/ui/wallet-detail-view";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <WalletDetailView />;
+  redirect("/menus");
 }

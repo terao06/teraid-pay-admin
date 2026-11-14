@@ -6,6 +6,15 @@ export interface AdminNavItem {
 
 export const adminNavItems: AdminNavItem[] = [
   {
+    label: "メニュー管理",
+    items: [
+      {
+        href: "/menus",
+        label: "メニュー一覧",
+      },
+    ],
+  },
+  {
     label: "ウォレット",
     items: [
       {

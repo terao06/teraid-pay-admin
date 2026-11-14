@@ -29,7 +29,7 @@ export function LoginView() {
 
   useEffect(() => {
     if (isReady && session) {
-      router.replace("/");
+      router.replace("/menus");
     }
   }, [isReady, router, session]);
 
@@ -41,7 +41,7 @@ export function LoginView() {
     try {
       const result = await loginStoreManager(email.trim(), password);
       signIn(result.data);
-      router.replace("/");
+      router.replace("/menus");
     } catch (error) {
       setErrorMessage(readClientError(error, "ログインに失敗しました。"));
     } finally {
@@ -67,19 +67,18 @@ export function LoginView() {
         px: 2,
         py: 5,
         background:
-          "radial-gradient(circle at top left, rgba(44,156,142,0.16), transparent 42%), background.default",
+          "radial-gradient(circle at 12% 8%, rgba(24,169,123,0.13), transparent 32%), #f4f7fb",
       }}
     >
       <Paper
         component="form"
         onSubmit={handleSubmit}
-        variant="outlined"
-        sx={{ width: "100%", maxWidth: 440, borderRadius: 4, p: { xs: 3, sm: 4 } }}
+        sx={{ width: "100%", maxWidth: 440, borderRadius: 4, p: { xs: 3, sm: 4.5 }, boxShadow: "0 24px 60px rgba(23,32,51,0.1)" }}
       >
         <Stack spacing={3}>
           <Box>
-            <Typography variant="overline" color="primary" sx={{ fontWeight: 800 }}>
-              TeraiD Pay Admin
+            <Typography variant="overline" color="primary" sx={{ fontWeight: 800, letterSpacing: "0.12em" }}>
+              WELCOME BACK
             </Typography>
             <Typography variant="h4" sx={{ mt: 0.5 }}>
               管理者ログイン

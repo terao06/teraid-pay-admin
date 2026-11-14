@@ -17,7 +17,7 @@ import {
   type AdminNavItem,
 } from "@/features/store-wallet/ui/admin-nav-items";
 
-const navColor = "#0b6b5f";
+const navColor = "#18a97b";
 
 function isItemActive(pathname: string, href?: string) {
   if (!href) {
@@ -56,13 +56,13 @@ function NavLinkItem({ href, label, pathname }: AdminNavItem & { pathname: strin
         py: 1.05,
         borderRadius: 2,
         border: "1px solid",
-        borderColor: isActive ? alpha(navColor, 0.35) : "transparent",
-        bgcolor: isActive ? alpha(navColor, 0.13) : "transparent",
+        borderColor: isActive ? alpha(navColor, 0.9) : "transparent",
+        bgcolor: isActive ? alpha(navColor, 0.9) : "transparent",
         fontWeight: isActive ? 700 : 500,
         transition: "all 170ms ease",
-        boxShadow: isActive ? `inset 0 0 0 1px ${alpha(navColor, 0.16)}` : "none",
+        boxShadow: isActive ? "0 8px 20px rgba(24,169,123,0.22)" : "none",
         "&:hover": {
-          bgcolor: alpha(navColor, 0.08),
+          bgcolor: isActive ? alpha(navColor, 0.9) : "rgba(255,255,255,0.07)",
           transform: "translateX(2px)",
         },
       }}
@@ -133,16 +133,16 @@ function NavGroup({
           py: 1.2,
           borderRadius: 2,
           border: "1px solid",
-          borderColor: isActive || open ? alpha(navColor, 0.35) : alpha(navColor, 0.12),
+          borderColor: isActive || open ? alpha(navColor, 0.7) : "rgba(255,255,255,0.1)",
           bgcolor:
             isActive || open
-              ? `linear-gradient(180deg, ${alpha(navColor, 0.14)} 0%, ${alpha(navColor, 0.08)} 100%)`
-              : alpha(navColor, 0.03),
+              ? `linear-gradient(180deg, ${alpha(navColor, 0.3)} 0%, ${alpha(navColor, 0.18)} 100%)`
+              : "rgba(255,255,255,0.035)",
           fontWeight: isActive ? 700 : 500,
           cursor: "pointer",
           transition: "all 170ms ease",
           "&:hover": {
-            bgcolor: alpha(navColor, 0.09),
+            bgcolor: alpha(navColor, 0.2),
           },
         }}
       >
@@ -154,7 +154,7 @@ function NavGroup({
           aria-hidden="true"
           variant="body2"
           sx={{
-            color: "text.secondary",
+            color: "rgba(255,255,255,0.55)",
             transform: open ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 170ms ease",
             display: "inline-block",
@@ -175,8 +175,8 @@ function NavGroup({
             ml: 0.75,
             pl: 0.75,
             borderLeft: "2px solid",
-            borderColor: alpha(navColor, 0.16),
-            background: `linear-gradient(180deg, ${alpha(navColor, 0.03)} 0%, transparent 100%)`,
+            borderColor: alpha(navColor, 0.35),
+            background: "rgba(255,255,255,0.02)",
           }}
         >
           {(item.items ?? []).map((child) => (
@@ -200,8 +200,7 @@ export function AdminNav() {
     <Stack spacing={1}>
       <Typography
         variant="caption"
-        color="text.secondary"
-        sx={{ px: 1.1, fontWeight: 700, letterSpacing: "0.08em" }}
+        sx={{ px: 1.1, color: "rgba(255,255,255,0.42)", fontWeight: 700, letterSpacing: "0.1em" }}
       >
         NAVIGATION
       </Typography>
