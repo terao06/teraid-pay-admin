@@ -15,13 +15,20 @@ interface AdminShellProps {
 export function AdminShell({ children }: AdminShellProps) {
   const { session, signOut } = useAuth();
   const pathname = usePathname();
-  const pageTitle = pathname === "/register"
+  const pageTitle = pathname === "/menu-categories/new"
+    ? "カテゴリー新規登録"
+    : pathname.startsWith("/menu-categories")
+      ? "カテゴリー管理"
+    : pathname === "/register"
     ? "ウォレット登録"
     : pathname === "/menus/new"
       ? "メニュー新規登録"
       : pathname.startsWith("/menus")
         ? "メニュー管理"
         : "ウォレット管理";
+  const pageDescription = pathname.startsWith("/menus") || pathname.startsWith("/menu-categories")
+    ? "メニューとカテゴリーを、わかりやすく管理します"
+    : "店舗ウォレットを安全に管理します";
   const managerInitial = session?.storeManager.name.trim().charAt(0).toUpperCase() || "A";
 
   return (
@@ -121,7 +128,7 @@ export function AdminShell({ children }: AdminShellProps) {
                 {pageTitle}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                店舗ウォレットを安全に管理します
+                {pageDescription}
               </Typography>
             </Box>
             <Chip
