@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import ImageNotSupportedRoundedIcon from "@mui/icons-material/ImageNotSupportedRounded";
 import RestaurantMenuRoundedIcon from "@mui/icons-material/RestaurantMenuRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
@@ -163,11 +164,24 @@ function MenuCard({ item }: { item: MenuItem }) {
             {item.description?.trim() || "説明は登録されていません"}
           </Typography>
         </Box>
-        <Box sx={{ pt: 1.5, mt: "auto", borderTop: "1px solid", borderColor: "divider" }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ pt: 1.5, mt: "auto", borderTop: "1px solid", borderColor: "divider", alignItems: "center", justifyContent: "space-between" }}
+        >
           <Typography variant="h6" color="primary.dark" sx={{ fontWeight: 900 }}>
             {formatPrice(item.price, item.token_symbol)}
           </Typography>
-        </Box>
+          <Button
+            component={NextLink}
+            href={`/menus/edit?id=${item.menu_item_id}`}
+            size="small"
+            variant="outlined"
+            startIcon={<EditRoundedIcon />}
+          >
+            編集
+          </Button>
+        </Stack>
       </Stack>
     </Paper>
   );

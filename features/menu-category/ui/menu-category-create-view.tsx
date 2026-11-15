@@ -339,7 +339,9 @@ export function MenuCategoryCreateView({ menuCategoryId }: MenuCategoryCreateVie
           is_active: isActive,
         });
         clearFormFields();
-        setStatusMessage(`「${result.data.name}」を登録しました。`);
+        setStatusMessage(
+          `「${normalizedName}」を登録しました。カテゴリーID: ${result.data.menu_category_id}`,
+        );
       }
     } catch (error) {
       setErrorMessage(

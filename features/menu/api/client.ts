@@ -7,8 +7,13 @@ export { fetchMenuCategories } from "@/features/menu-category/api/client";
 import type {
   MenuCreateRequest,
   MenuCreateSuccessResponse,
+  MenuDetailResponse,
   MenuListSuccessResponse,
+  MenuOptionGroupsUpdateRequest,
+  MenuOptionGroupsUpdateResponse,
   MenuSearchParams,
+  MenuUpdateRequest,
+  MenuUpdateResponse,
 } from "@/features/menu/domain/types";
 
 export function fetchMenus(searchParams: MenuSearchParams = {}) {
@@ -41,6 +46,38 @@ export function createMenu(payload: MenuCreateRequest) {
     createStoreApiUrl("/store/menu"),
     withAuthorization({
       method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+  );
+}
+
+export function fetchMenu(menuItemId: number) {
+  return readJsonOrThrow<MenuDetailResponse>(
+    createStoreApiUrl(`/store/menu/${menuItemId}`),
+    withAuthorization({ cache: "no-store" }),
+  );
+}
+
+export function updateMenu(menuItemId: number, payload: MenuUpdateRequest) {
+  return readJsonOrThrow<MenuUpdateResponse>(
+    createStoreApiUrl(`/store/menu/${menuItemId}`),
+    withAuthorization({
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }),
+  );
+}
+
+export function updateMenuOptionGroups(
+  menuItemId: number,
+  payload: MenuOptionGroupsUpdateRequest,
+) {
+  return readJsonOrThrow<MenuOptionGroupsUpdateResponse>(
+    createStoreApiUrl(`/store/menu/${menuItemId}/option-groups`),
+    withAuthorization({
+      method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }),

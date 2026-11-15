@@ -32,10 +32,19 @@ import {
   Typography,
 } from "@mui/material";
 
-import { createMenu, fetchMenuCategories } from "@/features/menu/api/client";
+import {
+  createMenu,
+  fetchMenu,
+  fetchMenuCategories,
+  updateMenu,
+  updateMenuOptionGroups,
+} from "@/features/menu/api/client";
 import type {
   MenuCategory,
   MenuCreateRequest,
+  MenuOptionGroup,
+  MenuOptionGroupsUpdateRequest,
+  MenuUpdateRequest,
 } from "@/features/menu/domain/types";
 import { readClientError } from "@/features/store-wallet/api/client";
 import { FeedbackBanner } from "@/features/store-wallet/ui/feedback-banner";
@@ -56,6 +65,7 @@ interface ImageCropSettings {
 
 interface OptionDraft {
   id: string;
+  menuOptionId?: number;
   name: string;
   additionalPrice: string;
   displayOrder: number;
@@ -64,6 +74,7 @@ interface OptionDraft {
 
 interface OptionGroupDraft {
   id: string;
+  menuOptionGroupId?: number;
   name: string;
   minSelections: number;
   maxSelections: number;
@@ -84,6 +95,26 @@ function createOption(displayOrder: number): OptionDraft {
     displayOrder,
     isAvailable: true,
   };
+}
+
+function createOptionGroupDrafts(optionGroups: MenuOptionGroup[]): OptionGroupDraft[] {
+  return optionGroups.map((group) => ({
+    id: String(group.menu_option_group_id),
+    menuOptionGroupId: group.menu_option_group_id,
+    name: group.name,
+    minSelections: group.min_selections,
+    maxSelections: group.max_selections,
+    displayOrder: group.display_order,
+    isActive: group.is_active,
+    options: group.options.map((option) => ({
+      id: String(option.menu_option_id),
+      menuOptionId: option.menu_option_id,
+      name: option.name,
+      additionalPrice: option.additional_price,
+      displayOrder: option.display_order,
+      isAvailable: option.is_available,
+    })),
+  }));
 }
 
 function readImage(file: File): Promise<MenuImageDraft> {
@@ -159,9 +190,16 @@ function createCroppedImageDataUrl(
   });
 }
 
-export function MenuCreateView() {
+interface MenuCreateViewProps {
+  menuItemId?: number;
+}
+
+export function MenuCreateView({ menuItemId }: MenuCreateViewProps = {}) {
+  const isEditMode = menuItemId !== undefined;
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isLoadingMenu, setIsLoadingMenu] = useState(isEditMode);
+  const [hasLoadedMenu, setHasLoadedMenu] = useState(!isEditMode);
   const [categoryId, setCategoryId] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -169,6 +207,7 @@ export function MenuCreateView() {
   const [displayOrder, setDisplayOrder] = useState(0);
   const [isAvailable, setIsAvailable] = useState(true);
   const [image, setImage] = useState<MenuImageDraft | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [imageCrop, setImageCrop] = useState<ImageCropSettings>({
     zoom: 1,
     positionX: 50,
@@ -204,6 +243,46 @@ export function MenuCreateView() {
       isActive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (menuItemId === undefined) return;
+
+    let isActive = true;
+
+    async function loadMenu() {
+      setIsLoadingMenu(true);
+      setHasLoadedMenu(false);
+      try {
+        const result = await fetchMenu(menuItemId as number);
+        if (!isActive) return;
+
+        const menu = result.data;
+        setCategoryId(menu.menu_category_id === null ? "" : String(menu.menu_category_id));
+        setName(menu.name);
+        setDescription(menu.description ?? "");
+        setPrice(menu.price);
+        setDisplayOrder(menu.display_order);
+        setIsAvailable(menu.is_available);
+        setExistingImageUrl(menu.image_url);
+        setImage(null);
+        setOptionGroups(createOptionGroupDrafts(menu.option_groups));
+        setHasLoadedMenu(true);
+      } catch (error) {
+        if (isActive) {
+          setErrorMessage(readClientError(error, "メニューの取得に失敗しました。"));
+        }
+      } finally {
+        if (isActive) {
+          setIsLoadingMenu(false);
+        }
+      }
+    }
+
+    void loadMenu();
+    return () => {
+      isActive = false;
+    };
+  }, [menuItemId]);
 
   useEffect(() => {
     let isActive = true;
@@ -243,6 +322,7 @@ export function MenuCreateView() {
     setDisplayOrder(0);
     setIsAvailable(true);
     setImage(null);
+    setExistingImageUrl(null);
     setImageCrop({ zoom: 1, positionX: 50, positionY: 50 });
     setCroppedImagePreview(null);
     setOptionGroups([]);
@@ -316,7 +396,7 @@ export function MenuCreateView() {
   function validateForm() {
     if (!name.trim()) return "メニュー名を入力してください。";
     if (price === "" || Number(price) < 0) return "0以上の価格を入力してください。";
-    if (!image) return "メニュー画像を選択してください。";
+    if (!image && !existingImageUrl) return "メニュー画像を選択してください。";
     for (const group of optionGroups) {
       if (!group.name.trim()) return "選択項目の名前を入力してください。";
       if (group.minSelections > group.maxSelections) {
@@ -332,7 +412,7 @@ export function MenuCreateView() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const validationMessage = validateForm();
-    if (validationMessage || !image) {
+    if (validationMessage || (isEditMode && !hasLoadedMenu) || (!isEditMode && !image)) {
       setErrorMessage(validationMessage ?? "入力内容を確認してください。");
       return;
     }
@@ -340,6 +420,57 @@ export function MenuCreateView() {
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
+      if (isEditMode) {
+        const payload: MenuUpdateRequest = {
+          menu_category_id: categoryId ? Number(categoryId) : null,
+          name: name.trim(),
+          description: description.trim() || null,
+          price,
+          token_symbol: "JPYC",
+          is_available: isAvailable,
+          display_order: displayOrder,
+        };
+
+        if (image) {
+          const croppedDataUrl = await createCroppedImageDataUrl(image, imageCrop, 1200);
+          const [, croppedBase64] = croppedDataUrl.split(",", 2);
+          if (!croppedBase64) {
+            throw new Error("画像データを変換できませんでした。");
+          }
+          payload.menu_image = croppedBase64;
+          payload.image_extension = image.extension;
+        }
+
+        const optionGroupsPayload: MenuOptionGroupsUpdateRequest = {
+          option_groups: optionGroups.map((group) => ({
+            menu_option_group_id: group.menuOptionGroupId,
+            name: group.name.trim(),
+            min_selections: group.minSelections,
+            max_selections: group.maxSelections,
+            display_order: group.displayOrder,
+            is_active: group.isActive,
+            options: group.options.map((option) => ({
+              menu_option_id: option.menuOptionId,
+              name: option.name.trim(),
+              additional_price: option.additionalPrice || "0",
+              display_order: option.displayOrder,
+              is_available: option.isAvailable,
+            })),
+          })),
+        };
+
+        const result = await updateMenu(menuItemId as number, payload);
+        await updateMenuOptionGroups(result.data.menu_item_id, optionGroupsPayload);
+        const refreshedResult = await fetchMenu(result.data.menu_item_id);
+        setExistingImageUrl(refreshedResult.data.image_url);
+        setOptionGroups(createOptionGroupDrafts(refreshedResult.data.option_groups));
+        setImage(null);
+        setCroppedImagePreview(null);
+        setStatusMessage(`メニューを更新しました。メニューID: ${result.data.menu_item_id}`);
+        return;
+      }
+
+      if (!image) return;
       const croppedDataUrl = await createCroppedImageDataUrl(image, imageCrop, 1200);
       const [, croppedBase64] = croppedDataUrl.split(",", 2);
       if (!croppedBase64) {
@@ -376,7 +507,12 @@ export function MenuCreateView() {
       resetForm();
       setStatusMessage(`メニューを登録しました。メニューID: ${registeredMenuId}`);
     } catch (error) {
-      setErrorMessage(readClientError(error, "メニューの登録に失敗しました。"));
+      setErrorMessage(
+        readClientError(
+          error,
+          `メニューの${isEditMode ? "更新" : "登録"}に失敗しました。`,
+        ),
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -388,7 +524,10 @@ export function MenuCreateView() {
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
-      <LoadingOverlay open={isSubmitting} label="メニューを登録中..." />
+      <LoadingOverlay
+        open={isSubmitting || isLoadingMenu}
+        label={isLoadingMenu ? "メニューを読み込んでいます…" : `メニューを${isEditMode ? "更新" : "登録"}中…`}
+      />
       <FeedbackBanner message={errorMessage} severity="error" onClose={closeFeedback} />
       <FeedbackBanner message={statusMessage} severity="success" onClose={closeFeedback} />
 
@@ -396,7 +535,7 @@ export function MenuCreateView() {
         type="button"
         variant="contained"
         onClick={() => setIsPreviewDrawerOpen(true)}
-        aria-label="登録内容のプレビューを見る"
+        aria-label={`${isEditMode ? "更新" : "登録"}内容のプレビューを見る`}
         sx={{
           position: "fixed",
           right: 0,
@@ -453,7 +592,9 @@ export function MenuCreateView() {
             }}
           >
             <Box>
-              <Typography sx={{ fontWeight: 800 }}>登録内容のプレビュー</Typography>
+              <Typography sx={{ fontWeight: 800 }}>
+                {isEditMode ? "更新" : "登録"}内容のプレビュー
+              </Typography>
               <Typography variant="caption" color="text.secondary">
                 メニュー選択画面での表示イメージ
               </Typography>
@@ -487,10 +628,10 @@ export function MenuCreateView() {
               overflow: "hidden",
             }}
           >
-            {image ? (
+            {image || existingImageUrl ? (
               <Box
                 component="img"
-                src={croppedImagePreview ?? image.dataUrl}
+                src={croppedImagePreview ?? image?.dataUrl ?? existingImageUrl ?? undefined}
                 alt="商品写真のプレビュー"
                 sx={{
                   display: "block",
@@ -551,10 +692,12 @@ export function MenuCreateView() {
             メニュー一覧へ戻る
           </Button>
           <Typography variant="h4" sx={{ fontWeight: 900 }}>
-            メニュー新規登録
+            メニュー{isEditMode ? "編集" : "新規登録"}
           </Typography>
           <Typography color="text.secondary" sx={{ mt: 0.75 }}>
-            お客様に表示する商品情報を入力してください。
+            {isEditMode
+              ? "商品の基本情報や画像、公開状態を更新できます。"
+              : "お客様に表示する商品情報を入力してください。"}
           </Typography>
         </Box>
 
@@ -674,7 +817,11 @@ export function MenuCreateView() {
                           onChange={(event) => setIsAvailable(event.target.checked)}
                         />
                       }
-                      label={isAvailable ? "登録後すぐに販売する" : "販売を一時停止して登録する"}
+                      label={
+                        isAvailable
+                          ? isEditMode ? "販売中" : "登録後すぐに販売する"
+                          : isEditMode ? "非公開" : "販売を一時停止して登録する"
+                      }
                     />
                   </Box>
                 </Box>
@@ -709,7 +856,7 @@ export function MenuCreateView() {
               </Box>
               <Divider />
               <Box sx={{ p: { xs: 2.5, md: 3 } }}>
-                {image ? (
+                {image || existingImageUrl ? (
                   <Box
                     sx={{
                       display: "grid",
@@ -733,7 +880,7 @@ export function MenuCreateView() {
                       >
                         <Box
                           component="img"
-                          src={croppedImagePreview ?? image.dataUrl}
+                          src={croppedImagePreview ?? image?.dataUrl ?? existingImageUrl ?? undefined}
                           alt="4対3に切り抜いた商品写真"
                           sx={{
                             position: "absolute",
@@ -823,7 +970,7 @@ export function MenuCreateView() {
                         </Button>
                       </Stack>
                       <Typography variant="caption" color="text.secondary">
-                        {image.fileName}
+                        {image?.fileName ?? "登録済み画像（変更時のみ新しい画像を選択）"}
                       </Typography>
                     </Stack>
                   </Box>
@@ -1239,9 +1386,11 @@ export function MenuCreateView() {
             }}
           >
             <Box sx={{ px: 2.5, py: 2, bgcolor: "grey.50" }}>
-              <Typography sx={{ fontWeight: 800 }}>登録内容のプレビュー</Typography>
+              <Typography sx={{ fontWeight: 800 }}>
+                {isEditMode ? "更新" : "登録"}内容のプレビュー
+              </Typography>
               <Typography variant="caption" color="text.secondary">
-                入力内容を確認しながら登録できます
+                入力内容を確認しながら{isEditMode ? "更新" : "登録"}できます
               </Typography>
             </Box>
             <Box
@@ -1265,10 +1414,10 @@ export function MenuCreateView() {
                 overflow: "hidden",
               }}
             >
-              {image ? (
+              {image || existingImageUrl ? (
                 <Box
                   component="img"
-                  src={croppedImagePreview ?? image.dataUrl}
+                  src={croppedImagePreview ?? image?.dataUrl ?? existingImageUrl ?? undefined}
                   alt="商品写真のプレビュー"
                   sx={{
                     display: "block",
@@ -1330,13 +1479,18 @@ export function MenuCreateView() {
           }}
         >
           <Typography variant="body2" color="text.secondary" sx={{ mr: { sm: "auto" } }}>
-            必須項目を入力して、登録内容をご確認ください。
+            必須項目を入力して、{isEditMode ? "更新" : "登録"}内容をご確認ください。
           </Typography>
           <Button component={NextLink} href="/menus" variant="outlined" color="inherit">
             キャンセル
           </Button>
-          <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
-            この内容で登録する
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={isSubmitting || isLoadingMenu || (isEditMode && !hasLoadedMenu)}
+          >
+            この内容で{isEditMode ? "更新" : "登録"}する
           </Button>
         </Paper>
       </Stack>

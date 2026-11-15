@@ -23,6 +23,8 @@ export function AdminShell({ children }: AdminShellProps) {
     ? "ウォレット登録"
     : pathname === "/menus/new"
       ? "メニュー新規登録"
+      : pathname === "/menus/edit"
+        ? "メニュー編集"
       : pathname.startsWith("/menus")
         ? "メニュー管理"
         : "ウォレット管理";

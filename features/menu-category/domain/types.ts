@@ -40,9 +40,6 @@ export interface MenuCategoryCreateRequest {
 
 export interface MenuCategoryCreateResult {
   menu_category_id: number;
-  name: string;
-  display_order: number;
-  is_active: boolean;
 }
 
 export interface MenuCategoryCreateResponse {
