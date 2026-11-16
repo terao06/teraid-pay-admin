@@ -6,6 +6,15 @@ export interface AdminNavItem {
 
 export const adminNavItems: AdminNavItem[] = [
   {
+    label: "デバイス管理",
+    items: [
+      {
+        href: "/devices",
+        label: "デバイス一覧",
+      },
+    ],
+  },
+  {
     label: "メニュー管理",
     items: [
       {

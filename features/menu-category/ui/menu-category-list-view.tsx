@@ -58,7 +58,6 @@ function TableLoadingRows() {
       <TableCell><Skeleton width={index % 2 === 0 ? "58%" : "42%"} /></TableCell>
       <TableCell><Skeleton width={78} height={32} /></TableCell>
       <TableCell align="right"><Skeleton width={38} sx={{ ml: "auto" }} /></TableCell>
-      <TableCell align="right"><Skeleton width={52} sx={{ ml: "auto" }} /></TableCell>
     </TableRow>
   ));
 }
@@ -317,7 +316,7 @@ export function MenuCategoryListView() {
         </Stack>
 
         <TableContainer sx={{ borderTop: "1px solid", borderColor: "divider" }}>
-          <Table sx={{ minWidth: 720 }} aria-label="カテゴリー一覧">
+          <Table sx={{ minWidth: 620 }} aria-label="カテゴリー一覧">
             <TableHead>
               <TableRow sx={{ bgcolor: "#f8fafc" }}>
                 <TableCell sx={{ width: 72, color: "text.secondary", fontWeight: 800 }}>順序</TableCell>
@@ -326,16 +325,13 @@ export function MenuCategoryListView() {
                 <TableCell align="right" sx={{ width: 110, color: "text.secondary", fontWeight: 800 }}>
                   表示順
                 </TableCell>
-                <TableCell align="right" sx={{ width: 110, color: "text.secondary", fontWeight: 800 }}>
-                  ID
-                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading && categories.length === 0 ? <TableLoadingRows /> : null}
               {!isLoading && !errorMessage && categories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} sx={{ py: 8, borderBottom: 0 }}>
+                  <TableCell colSpan={4} sx={{ py: 8, borderBottom: 0 }}>
                     <Stack spacing={1.5} sx={{ alignItems: "center", textAlign: "center" }}>
                       <Box
                         sx={{
@@ -410,11 +406,6 @@ export function MenuCategoryListView() {
                       <TableCell align="right">
                         <Typography component="span" variant="body2" sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
                           {category.display_order}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="right">
-                        <Typography component="span" variant="body2" color="text.secondary" sx={{ fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
-                          {category.menu_category_id}
                         </Typography>
                       </TableCell>
                     </TableRow>

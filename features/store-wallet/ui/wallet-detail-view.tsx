@@ -403,15 +403,6 @@ export function WalletDetailView({
       ) : (
         <Paper variant="outlined" sx={{ borderRadius: 3, px: 3, py: 1 }}>
           <DetailRow
-            label="Wallet ID"
-            value={
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                #{wallet.wallet_id}
-              </Typography>
-            }
-          />
-          <Divider />
-          <DetailRow
             label="Wallet Address"
             value={
               <Typography
@@ -431,11 +422,6 @@ export function WalletDetailView({
           <DetailRow
             label="Network"
             value={<Typography variant="body2">{wallet.network_name}</Typography>}
-          />
-          <Divider />
-          <DetailRow
-            label="Chain ID"
-            value={<Typography variant="body2">{wallet.chain_id}</Typography>}
           />
           <Divider />
           <DetailRow

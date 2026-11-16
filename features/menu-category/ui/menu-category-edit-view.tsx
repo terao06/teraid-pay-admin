@@ -20,7 +20,7 @@ export function MenuCategoryEditView() {
   if (!isValidMenuCategoryId) {
     return (
       <Stack spacing={2}>
-        <Alert severity="error">編集するカテゴリーIDが正しくありません。</Alert>
+        <Alert severity="error">編集するカテゴリーが正しくありません。</Alert>
         <Button
           component={NextLink}
           href="/menu-categories"

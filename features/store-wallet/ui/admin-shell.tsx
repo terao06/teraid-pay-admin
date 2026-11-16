@@ -15,7 +15,13 @@ interface AdminShellProps {
 export function AdminShell({ children }: AdminShellProps) {
   const { session, signOut } = useAuth();
   const pathname = usePathname();
-  const pageTitle = pathname === "/menu-categories/new"
+  const pageTitle = pathname === "/devices/new"
+    ? "デバイス新規登録"
+    : pathname === "/devices/edit"
+      ? "デバイス編集"
+    : pathname.startsWith("/devices")
+      ? "デバイス管理"
+    : pathname === "/menu-categories/new"
     ? "カテゴリー新規登録"
     : pathname.startsWith("/menu-categories")
       ? "カテゴリー管理"
@@ -28,9 +34,11 @@ export function AdminShell({ children }: AdminShellProps) {
       : pathname.startsWith("/menus")
         ? "メニュー管理"
         : "ウォレット管理";
-  const pageDescription = pathname.startsWith("/menus") || pathname.startsWith("/menu-categories")
-    ? "メニューとカテゴリーを、わかりやすく管理します"
-    : "店舗ウォレットを安全に管理します";
+  const pageDescription = pathname.startsWith("/devices")
+    ? "店舗で利用するデバイスを管理します"
+    : pathname.startsWith("/menus") || pathname.startsWith("/menu-categories")
+      ? "メニューとカテゴリーを、わかりやすく管理します"
+      : "店舗ウォレットを安全に管理します";
   const managerInitial = session?.storeManager.name.trim().charAt(0).toUpperCase() || "A";
 
   return (
@@ -89,9 +97,6 @@ export function AdminShell({ children }: AdminShellProps) {
               <Box sx={{ minWidth: 0 }}>
                 <Typography variant="body2" noWrap sx={{ fontWeight: 700 }}>
                   {session?.storeManager.name}
-                </Typography>
-                <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.48)" }}>
-                  店舗 ID: {session?.storeManager.store_id}
                 </Typography>
               </Box>
             </Stack>

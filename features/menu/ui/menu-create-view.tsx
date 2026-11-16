@@ -466,7 +466,7 @@ export function MenuCreateView({ menuItemId }: MenuCreateViewProps = {}) {
         setOptionGroups(createOptionGroupDrafts(refreshedResult.data.option_groups));
         setImage(null);
         setCroppedImagePreview(null);
-        setStatusMessage(`メニューを更新しました。メニューID: ${result.data.menu_item_id}`);
+        setStatusMessage("メニューを更新しました。");
         return;
       }
 
@@ -502,10 +502,9 @@ export function MenuCreateView({ menuItemId }: MenuCreateViewProps = {}) {
         })),
       };
 
-      const result = await createMenu(payload);
-      const registeredMenuId = result.data.menu_item_id;
+      await createMenu(payload);
       resetForm();
-      setStatusMessage(`メニューを登録しました。メニューID: ${registeredMenuId}`);
+      setStatusMessage("メニューを登録しました。");
     } catch (error) {
       setErrorMessage(
         readClientError(

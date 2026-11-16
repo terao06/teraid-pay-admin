@@ -331,7 +331,7 @@ export function MenuCategoryCreateView({ menuCategoryId }: MenuCategoryCreateVie
           throw new Error("カテゴリー画像を選択してください。");
         }
 
-        const result = await createMenuCategory({
+        await createMenuCategory({
           name: normalizedName,
           category_image: croppedBase64,
           image_extension: image.extension,
@@ -339,9 +339,7 @@ export function MenuCategoryCreateView({ menuCategoryId }: MenuCategoryCreateVie
           is_active: isActive,
         });
         clearFormFields();
-        setStatusMessage(
-          `「${normalizedName}」を登録しました。カテゴリーID: ${result.data.menu_category_id}`,
-        );
+        setStatusMessage(`「${normalizedName}」を登録しました。`);
       }
     } catch (error) {
       setErrorMessage(

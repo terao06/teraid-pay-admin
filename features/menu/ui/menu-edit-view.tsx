@@ -20,7 +20,7 @@ export function MenuEditView() {
   if (!isValidMenuItemId) {
     return (
       <Stack spacing={2}>
-        <Alert severity="error">編集対象のメニューIDが正しくありません。</Alert>
+        <Alert severity="error">編集対象のメニューが正しくありません。</Alert>
         <Button
           component={NextLink}
           href="/menus"
