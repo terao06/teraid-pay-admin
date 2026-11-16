@@ -1,7 +1,7 @@
 import type {
   StoreManagerInfo,
   StoreManagerLoginResponse,
-} from "@/features/store-wallet/domain/types";
+} from "@/features/auth/domain/types";
 
 const AUTH_SESSION_KEY = "teraid-pay-admin-session";
 

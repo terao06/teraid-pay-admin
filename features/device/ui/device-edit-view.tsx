@@ -31,9 +31,9 @@ import {
 
 import { fetchDevice, issueDeviceActivationCode, updateDevice } from "@/features/device/api/client";
 import type { DeviceActivationCode, DeviceDetail } from "@/features/device/domain/types";
-import { readClientError } from "@/features/store-wallet/api/client";
-import { FeedbackBanner } from "@/features/store-wallet/ui/feedback-banner";
-import { LoadingOverlay } from "@/features/store-wallet/ui/loading-overlay";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { readClientError } from "@/lib/store-api-client";
 
 function formatDateTime(value: string | null) {
   if (!value) {

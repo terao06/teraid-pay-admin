@@ -33,7 +33,7 @@ import {
 
 import { fetchMenuCategories, fetchMenus } from "@/features/menu/api/client";
 import type { MenuCategory, MenuItem, MenuPagination } from "@/features/menu/domain/types";
-import { readClientError } from "@/features/store-wallet/api/client";
+import { readClientError } from "@/lib/store-api-client";
 
 type AvailabilityFilter = "all" | "available" | "unavailable";
 

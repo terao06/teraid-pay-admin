@@ -1,15 +1,3 @@
-export type ApiStatus = "success";
-
-export interface ValidationErrorItem {
-  loc: Array<string | number>;
-  msg: string;
-  type: string;
-}
-
-export interface HttpValidationError {
-  detail?: ValidationErrorItem[] | string;
-}
-
 export interface StoreWalletResponse {
   wallet_id: number;
   wallet_address: string;
@@ -22,25 +10,6 @@ export interface StoreWalletResponse {
   verified_at: string | null;
   created_at: string;
   updated_at: string;
-}
-
-export interface StoreManagerInfo {
-  store_manager_id: number;
-  store_id: number;
-  name: string;
-  roll_id: number;
-}
-
-export interface StoreManagerLoginResponse {
-  access_token: string;
-  token_type: "Bearer";
-  expires_in: number;
-  store_manager: StoreManagerInfo;
-}
-
-export interface StoreManagerLoginSuccessResponse {
-  status: ApiStatus;
-  data: StoreManagerLoginResponse;
 }
 
 export interface WalletNonceCreateRequest {
@@ -77,25 +46,21 @@ export interface StoreWalletVerifyResponse {
 }
 
 export interface StoreWalletSuccessResponse {
-  status: ApiStatus;
+  status: "success";
   data: StoreWalletResponse | null;
 }
 
 export interface WalletNonceCreateSuccessResponse {
-  status: ApiStatus;
+  status: "success";
   data: WalletNonceCreateResponse;
 }
 
 export interface StoreWalletVerifySuccessResponse {
-  status: ApiStatus;
+  status: "success";
   data: StoreWalletVerifyResponse;
 }
 
 export interface DeleteWalletSuccessResponse {
-  status: ApiStatus;
+  status: "success";
   data: null;
-}
-
-export interface ApiErrorResponse extends HttpValidationError {
-  message?: string;
 }

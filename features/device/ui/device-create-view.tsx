@@ -19,9 +19,9 @@ import {
 } from "@mui/material";
 
 import { createDevice } from "@/features/device/api/client";
-import { readClientError } from "@/features/store-wallet/api/client";
-import { FeedbackBanner } from "@/features/store-wallet/ui/feedback-banner";
-import { LoadingOverlay } from "@/features/store-wallet/ui/loading-overlay";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { readClientError } from "@/lib/store-api-client";
 
 export function DeviceCreateView() {
   const [deviceName, setDeviceName] = useState("");

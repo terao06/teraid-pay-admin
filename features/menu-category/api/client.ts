@@ -2,7 +2,7 @@ import {
   createStoreApiUrl,
   readJsonOrThrow,
   withAuthorization,
-} from "@/features/store-wallet/api/client";
+} from "@/lib/store-api-client";
 import type {
   MenuCategoryCreateRequest,
   MenuCategoryCreateResponse,

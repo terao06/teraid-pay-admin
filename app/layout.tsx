@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AppThemeProvider } from "@/components/theme-provider";
 import { Web3Providers } from "@/components/web3-providers";
-import { AuthProvider } from "@/features/store-wallet/auth/auth-provider";
+import { AuthProvider } from "@/features/auth/ui/auth-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {

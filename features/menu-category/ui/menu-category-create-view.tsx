@@ -33,9 +33,9 @@ import {
   updateMenuCategory,
 } from "@/features/menu-category/api/client";
 import type { MenuCategoryImageExtension } from "@/features/menu-category/domain/types";
-import { readClientError } from "@/features/store-wallet/api/client";
-import { FeedbackBanner } from "@/features/store-wallet/ui/feedback-banner";
-import { LoadingOverlay } from "@/features/store-wallet/ui/loading-overlay";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { readClientError } from "@/lib/store-api-client";
 
 interface CategoryImageDraft {
   base64: string;

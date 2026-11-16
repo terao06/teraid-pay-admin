@@ -39,7 +39,7 @@ import type {
   MenuCategory,
   MenuCategoryPagination,
 } from "@/features/menu-category/domain/types";
-import { readClientError } from "@/features/store-wallet/api/client";
+import { readClientError } from "@/lib/store-api-client";
 
 type CategoryStatus = "active" | "inactive";
 

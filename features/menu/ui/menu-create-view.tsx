@@ -46,9 +46,9 @@ import type {
   MenuOptionGroupsUpdateRequest,
   MenuUpdateRequest,
 } from "@/features/menu/domain/types";
-import { readClientError } from "@/features/store-wallet/api/client";
-import { FeedbackBanner } from "@/features/store-wallet/ui/feedback-banner";
-import { LoadingOverlay } from "@/features/store-wallet/ui/loading-overlay";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { readClientError } from "@/lib/store-api-client";
 
 interface MenuImageDraft {
   base64: string;

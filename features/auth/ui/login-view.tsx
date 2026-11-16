@@ -13,11 +13,9 @@ import {
   Typography,
 } from "@mui/material";
 
-import {
-  loginStoreManager,
-  readClientError,
-} from "@/features/store-wallet/api/client";
-import { useAuth } from "@/features/store-wallet/auth/auth-provider";
+import { loginStoreManager } from "@/features/auth/api/client";
+import { useAuth } from "@/features/auth/ui/auth-provider";
+import { readClientError } from "@/lib/store-api-client";
 
 export function LoginView() {
   const router = useRouter();

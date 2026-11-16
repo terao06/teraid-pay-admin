@@ -1,5 +1,5 @@
-import { AdminShell } from "@/features/store-wallet/ui/admin-shell";
-import { AuthGuard } from "@/features/store-wallet/auth/auth-guard";
+import { AdminShell } from "@/features/admin/ui/admin-shell";
+import { AuthGuard } from "@/features/auth/ui/auth-guard";
 
 export default function AdminLayout({
   children,

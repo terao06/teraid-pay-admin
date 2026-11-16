@@ -22,12 +22,12 @@ import { useBalance } from "wagmi";
 import {
   deleteStoreWallet,
   fetchStoreWallet,
-  readClientError,
 } from "@/features/store-wallet/api/client";
 import { formatDateTime } from "@/features/store-wallet/domain/format";
 import type { StoreWalletResponse } from "@/features/store-wallet/domain/types";
-import { FeedbackBanner } from "@/features/store-wallet/ui/feedback-banner";
-import { LoadingOverlay } from "@/features/store-wallet/ui/loading-overlay";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
+import { readClientError } from "@/lib/store-api-client";
 
 interface WalletDetailViewProps {
   initialWallet?: StoreWalletResponse | null;

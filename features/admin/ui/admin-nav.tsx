@@ -15,7 +15,7 @@ import { alpha } from "@mui/material/styles";
 import {
   adminNavItems,
   type AdminNavItem,
-} from "@/features/store-wallet/ui/admin-nav-items";
+} from "@/features/admin/ui/admin-nav-items";
 
 const navColor = "#18a97b";
 

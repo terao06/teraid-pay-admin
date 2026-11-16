@@ -10,14 +10,14 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { AUTH_UNAUTHORIZED_EVENT } from "@/features/store-wallet/api/client";
+import { AUTH_UNAUTHORIZED_EVENT } from "@/lib/store-api-client";
 import {
   clearAuthSession,
   readAuthSession,
   saveAuthSession,
   type AuthSession,
-} from "@/features/store-wallet/auth/session";
-import type { StoreManagerLoginResponse } from "@/features/store-wallet/domain/types";
+} from "@/features/auth/session";
+import type { StoreManagerLoginResponse } from "@/features/auth/domain/types";
 
 interface AuthContextValue {
   session: AuthSession | null;

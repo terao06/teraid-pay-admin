@@ -2,7 +2,7 @@
 
 import { Box, CircularProgress, Stack, Typography } from "@mui/material";
 
-import { useAuth } from "@/features/store-wallet/auth/auth-provider";
+import { useAuth } from "@/features/auth/ui/auth-provider";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { session, isReady } = useAuth();

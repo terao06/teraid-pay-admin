@@ -5,8 +5,8 @@ import WalletRoundedIcon from "@mui/icons-material/WalletRounded";
 import { Avatar, Box, Button, Chip, Divider, Stack, Typography } from "@mui/material";
 import { usePathname } from "next/navigation";
 
-import { useAuth } from "@/features/store-wallet/auth/auth-provider";
-import { AdminNav } from "@/features/store-wallet/ui/admin-nav";
+import { useAuth } from "@/features/auth/ui/auth-provider";
+import { AdminNav } from "@/features/admin/ui/admin-nav";
 
 interface AdminShellProps {
   children: React.ReactNode;

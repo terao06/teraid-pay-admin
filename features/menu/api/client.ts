@@ -2,7 +2,7 @@ import {
   createStoreApiUrl,
   readJsonOrThrow,
   withAuthorization,
-} from "@/features/store-wallet/api/client";
+} from "@/lib/store-api-client";
 export { fetchMenuCategories } from "@/features/menu-category/api/client";
 import type {
   MenuCreateRequest,

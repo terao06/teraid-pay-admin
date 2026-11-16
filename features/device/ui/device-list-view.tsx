@@ -39,7 +39,7 @@ import type {
   DeviceListItem,
   DevicePagination,
 } from "@/features/device/domain/types";
-import { readClientError } from "@/features/store-wallet/api/client";
+import { readClientError } from "@/lib/store-api-client";
 
 type DeviceStatusFilter = "all" | "active" | "inactive";
 
