@@ -7,6 +7,7 @@ import type {
   DeviceCreateRequest,
   DeviceCreateResponse,
   DeviceActivationCodeResponse,
+  DeviceDeleteResponse,
   DeviceDetailResponse,
   DeviceListResponse,
   DeviceSearchParams,
@@ -63,6 +64,15 @@ export function updateDevice(deviceId: number, payload: DeviceUpdateRequest) {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+    }),
+  );
+}
+
+export function deleteDevice(deviceId: number) {
+  return readJsonOrThrow<DeviceDeleteResponse>(
+    createStoreApiUrl(`/store/devices/${deviceId}`),
+    withAuthorization({
+      method: "DELETE",
     }),
   );
 }

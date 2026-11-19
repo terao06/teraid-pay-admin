@@ -65,6 +65,13 @@ export interface DeviceUpdateResponse {
   };
 }
 
+export interface DeviceDeleteResponse {
+  status: "success";
+  data: {
+    device_id: number;
+  };
+}
+
 export interface DeviceActivationCode {
   device_id: number;
   activation_code: string;

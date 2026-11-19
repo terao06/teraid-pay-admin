@@ -84,11 +84,11 @@ export function createStoreApiUrl(pathname: string) {
   return `${TERAID_PAY_API_BASE_URL}${pathname}`;
 }
 
-export async function readJsonOrThrow<T>(
+async function fetchOrThrow(
   input: RequestInfo,
   init?: RequestInit,
   redirectOnUnauthorized = true,
-): Promise<T> {
+): Promise<unknown> {
   const response = await fetch(input, init);
   const rawText = await response.text();
   const payload: unknown = (() => {
@@ -110,6 +110,24 @@ export async function readJsonOrThrow<T>(
     }
     throw new Error(buildHttpErrorMessage(response, payload, rawText));
   }
+
+  return payload;
+}
+
+export async function requestOrThrow(
+  input: RequestInfo,
+  init?: RequestInit,
+  redirectOnUnauthorized = true,
+): Promise<void> {
+  await fetchOrThrow(input, init, redirectOnUnauthorized);
+}
+
+export async function readJsonOrThrow<T>(
+  input: RequestInfo,
+  init?: RequestInit,
+  redirectOnUnauthorized = true,
+): Promise<T> {
+  const payload = await fetchOrThrow(input, init, redirectOnUnauthorized);
 
   if (payload === undefined) {
     throw new Error("API response was empty or not valid JSON.");

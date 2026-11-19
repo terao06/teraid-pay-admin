@@ -6,6 +6,7 @@ import {
 import type {
   MenuCategoryCreateRequest,
   MenuCategoryCreateResponse,
+  MenuCategoryDeleteResponse,
   MenuCategoryDetailResponse,
   MenuCategoryListResponse,
   MenuCategorySearchParams,
@@ -66,5 +67,12 @@ export function updateMenuCategory(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }),
+  );
+}
+
+export function deleteMenuCategory(menuCategoryId: number) {
+  return readJsonOrThrow<MenuCategoryDeleteResponse>(
+    createStoreApiUrl(`/store/menu/categories/${menuCategoryId}`),
+    withAuthorization({ method: "DELETE" }),
   );
 }

@@ -1,12 +1,24 @@
 "use client";
 
+import { useState } from "react";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import WalletRoundedIcon from "@mui/icons-material/WalletRounded";
-import { Avatar, Box, Button, Chip, Divider, Stack, Typography } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Divider,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { usePathname } from "next/navigation";
 
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
 import { useAuth } from "@/features/auth/ui/auth-provider";
 import { AdminNav } from "@/features/admin/ui/admin-nav";
+import { readClientError } from "@/lib/store-api-client";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -15,6 +27,8 @@ interface AdminShellProps {
 export function AdminShell({ children }: AdminShellProps) {
   const { session, signOut } = useAuth();
   const pathname = usePathname();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
   const pageTitle = pathname === "/devices/new"
     ? "デバイス新規登録"
     : pathname === "/devices/edit"
@@ -41,8 +55,29 @@ export function AdminShell({ children }: AdminShellProps) {
       : "店舗ウォレットを安全に管理します";
   const managerInitial = session?.storeManager.name.trim().charAt(0).toUpperCase() || "A";
 
+  async function handleSignOut() {
+    if (isSigningOut) {
+      return;
+    }
+
+    setIsSigningOut(true);
+    setSignOutError(null);
+
+    try {
+      await signOut();
+    } catch (error) {
+      setSignOutError(readClientError(error, "ログアウトに失敗しました。"));
+      setIsSigningOut(false);
+    }
+  }
+
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
+      <FeedbackBanner
+        message={signOutError}
+        severity="error"
+        onClose={() => setSignOutError(null)}
+      />
       <Stack
         direction={{ xs: "column", lg: "row" }}
         sx={{ minHeight: "100vh" }}
@@ -101,13 +136,18 @@ export function AdminShell({ children }: AdminShellProps) {
               </Box>
             </Stack>
             <Button
-              onClick={signOut}
+              onClick={() => void handleSignOut()}
+              disabled={isSigningOut}
               color="inherit"
               size="small"
-              startIcon={<LogoutRoundedIcon />}
+              startIcon={
+                isSigningOut
+                  ? <CircularProgress color="inherit" size={16} />
+                  : <LogoutRoundedIcon />
+              }
               sx={{ justifyContent: "flex-start", color: "rgba(255,255,255,0.66)", px: 1 }}
             >
-              ログアウト
+              {isSigningOut ? "ログアウト中..." : "ログアウト"}
             </Button>
           </Stack>
         </Box>

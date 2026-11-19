@@ -85,6 +85,7 @@ export function DeviceEditView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isIssuingActivationCode, setIsIssuingActivationCode] = useState(false);
   const [activationCodeInfo, setActivationCodeInfo] = useState<DeviceActivationCode | null>(null);
+  const [isActivationCodeDialogOpen, setIsActivationCodeDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -158,6 +159,7 @@ export function DeviceEditView() {
     try {
       const result = await issueDeviceActivationCode(device.device_id);
       setActivationCodeInfo(result.data);
+      setIsActivationCodeDialogOpen(true);
     } catch (error) {
       setErrorMessage(readClientError(error, "デバイス設定用QRコードの発行に失敗しました。"));
     } finally {
@@ -166,6 +168,10 @@ export function DeviceEditView() {
   }
 
   function closeActivationCodeDialog() {
+    setIsActivationCodeDialogOpen(false);
+  }
+
+  function clearActivationCodeInfo() {
     setActivationCodeInfo(null);
   }
 
@@ -225,11 +231,14 @@ export function DeviceEditView() {
       <FeedbackBanner message={statusMessage} severity="success" onClose={() => setStatusMessage(null)} />
 
       <Dialog
-        open={activationCodeInfo !== null}
+        open={isActivationCodeDialogOpen}
         onClose={closeActivationCodeDialog}
         maxWidth="sm"
         fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3 } } }}
+        slotProps={{
+          paper: { sx: { borderRadius: 3 } },
+          transition: { onExited: clearActivationCodeInfo },
+        }}
       >
         <DialogTitle sx={{ pr: 7 }}>
           <Typography variant="h6" component="div" sx={{ fontWeight: 900 }}>
@@ -425,7 +434,7 @@ export function DeviceEditView() {
                         <Stack direction="row" spacing={1} sx={{ mt: 1.25, alignItems: "flex-start", color: "text.secondary" }}>
                           <InfoOutlinedIcon fontSize="small" sx={{ mt: 0.15, flexShrink: 0 }} />
                           <Typography variant="caption" sx={{ lineHeight: 1.6 }}>
-                            初回有効化が完了するまで、有効状態には変更できません。
+                            デバイス設定が完了するまで、有効状態には変更できません。
                           </Typography>
                         </Stack>
                       ) : null}

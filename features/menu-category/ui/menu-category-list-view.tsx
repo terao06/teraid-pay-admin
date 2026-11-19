@@ -6,6 +6,7 @@ import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
 import CategoryRoundedIcon from "@mui/icons-material/CategoryRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
 import NextLink from "next/link";
@@ -16,6 +17,11 @@ import {
   Button,
   ButtonGroup,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   IconButton,
   InputAdornment,
   LinearProgress,
@@ -34,7 +40,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import { fetchMenuCategories } from "@/features/menu-category/api/client";
+import { deleteMenuCategory, fetchMenuCategories } from "@/features/menu-category/api/client";
 import type {
   MenuCategory,
   MenuCategoryPagination,
@@ -58,6 +64,7 @@ function TableLoadingRows() {
       <TableCell><Skeleton width={index % 2 === 0 ? "58%" : "42%"} /></TableCell>
       <TableCell><Skeleton width={78} height={32} /></TableCell>
       <TableCell align="right"><Skeleton width={38} sx={{ ml: "auto" }} /></TableCell>
+      <TableCell align="right"><Skeleton width={30} sx={{ ml: "auto" }} /></TableCell>
     </TableRow>
   ));
 }
@@ -93,6 +100,10 @@ export function MenuCategoryListView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<MenuCategory | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -115,19 +126,18 @@ export function MenuCategoryListView() {
           return;
         }
 
-        if (result.data.pagination.total_pages > 0 && page > result.data.pagination.total_pages) {
-          setPage(result.data.pagination.total_pages);
+        const lastPage = Math.max(1, result.data.pagination.total_pages);
+        if (page > lastPage) {
+          setPage(lastPage);
           return;
         }
 
         setCategories(result.data.menu_categories);
         setPagination(result.data.pagination);
+        setIsLoading(false);
       } catch (error) {
         if (isActive) {
           setErrorMessage(readClientError(error, "カテゴリーの取得に失敗しました。"));
-        }
-      } finally {
-        if (isActive) {
           setIsLoading(false);
         }
       }
@@ -150,6 +160,34 @@ export function MenuCategoryListView() {
   function changeStatus(nextStatus: CategoryStatus) {
     setStatus(nextStatus);
     setPage(1);
+  }
+
+  function closeDeleteDialog() {
+    if (!isDeleting) {
+      setCategoryToDelete(null);
+    }
+  }
+
+  async function handleDeleteCategory() {
+    if (!categoryToDelete || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      await deleteMenuCategory(categoryToDelete.menu_category_id);
+      setCategoryToDelete(null);
+      setSuccessMessage(`「${categoryToDelete.name}」を削除しました。`);
+      setIsLoading(true);
+      setReloadKey((current) => current + 1);
+    } catch (error) {
+      setDeleteErrorMessage(readClientError(error, "カテゴリーの削除に失敗しました。"));
+    } finally {
+      setIsDeleting(false);
+    }
   }
 
   return (
@@ -269,6 +307,8 @@ export function MenuCategoryListView() {
         </Alert>
       ) : null}
 
+      {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
+
       <Paper variant="outlined" sx={{ overflow: "hidden" }}>
         <Box
           sx={{
@@ -325,13 +365,16 @@ export function MenuCategoryListView() {
                 <TableCell align="right" sx={{ width: 110, color: "text.secondary", fontWeight: 800 }}>
                   表示順
                 </TableCell>
+                <TableCell align="right" sx={{ width: 72, color: "text.secondary", fontWeight: 800 }}>
+                  操作
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading && categories.length === 0 ? <TableLoadingRows /> : null}
               {!isLoading && !errorMessage && categories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} sx={{ py: 8, borderBottom: 0 }}>
+                  <TableCell colSpan={5} sx={{ py: 8, borderBottom: 0 }}>
                     <Stack spacing={1.5} sx={{ alignItems: "center", textAlign: "center" }}>
                       <Box
                         sx={{
@@ -377,7 +420,7 @@ export function MenuCategoryListView() {
                       aria-label={`${category.name}の詳細を表示`}
                       onClick={() => router.push(`/menu-categories/edit?id=${category.menu_category_id}`)}
                       onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
+                        if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) {
                           event.preventDefault();
                           router.push(`/menu-categories/edit?id=${category.menu_category_id}`);
                         }
@@ -407,6 +450,21 @@ export function MenuCategoryListView() {
                         <Typography component="span" variant="body2" sx={{ fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>
                           {category.display_order}
                         </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          aria-label={`${category.name}を削除`}
+                          disabled={isLoading || isDeleting}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setDeleteErrorMessage(null);
+                            setCategoryToDelete(category);
+                          }}
+                        >
+                          <DeleteOutlineRoundedIcon fontSize="small" />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))
@@ -444,6 +502,40 @@ export function MenuCategoryListView() {
           </Stack>
         ) : null}
       </Paper>
+
+      <Dialog
+        open={categoryToDelete !== null}
+        onClose={closeDeleteDialog}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="menu-category-delete-dialog-title"
+        aria-describedby="menu-category-delete-dialog-description"
+      >
+        <DialogTitle id="menu-category-delete-dialog-title">カテゴリーを削除しますか？</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5}>
+            <DialogContentText id="menu-category-delete-dialog-description">
+              「{categoryToDelete?.name}」を削除します。
+              <br />
+              この操作は取り消せません。
+            </DialogContentText>
+            {deleteErrorMessage ? <Alert severity="error">{deleteErrorMessage}</Alert> : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} disabled={isDeleting} autoFocus>
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleDeleteCategory}
+            color="error"
+            variant="contained"
+            loading={isDeleting}
+          >
+            {isDeleting ? "削除中…" : "削除する"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

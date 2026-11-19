@@ -11,6 +11,7 @@ import {
 import { usePathname, useRouter } from "next/navigation";
 
 import { AUTH_UNAUTHORIZED_EVENT } from "@/lib/store-api-client";
+import { logoutStoreManager } from "@/features/auth/api/client";
 import {
   clearAuthSession,
   readAuthSession,
@@ -23,7 +24,7 @@ interface AuthContextValue {
   session: AuthSession | null;
   isReady: boolean;
   signIn: (login: StoreManagerLoginResponse) => void;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -34,11 +35,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isReady, setIsReady] = useState(false);
 
-  const signOut = useCallback(() => {
+  const clearSessionAndRedirect = useCallback(() => {
     clearAuthSession();
     setSession(null);
     router.replace("/login");
   }, [router]);
+
+  const signOut = useCallback(async () => {
+    await logoutStoreManager();
+    clearSessionAndRedirect();
+  }, [clearSessionAndRedirect]);
 
   const signIn = useCallback((login: StoreManagerLoginResponse) => {
     setSession(saveAuthSession(login));
@@ -53,10 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const handleUnauthorized = () => signOut();
+    const handleUnauthorized = () => clearSessionAndRedirect();
     window.addEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
     return () => window.removeEventListener(AUTH_UNAUTHORIZED_EVENT, handleUnauthorized);
-  }, [signOut]);
+  }, [clearSessionAndRedirect]);
 
   useEffect(() => {
     if (!session) {
@@ -64,9 +70,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const remainingMilliseconds = session.expiresAt - Date.now();
-    const timer = window.setTimeout(signOut, Math.max(remainingMilliseconds, 0));
+    const timer = window.setTimeout(
+      clearSessionAndRedirect,
+      Math.max(remainingMilliseconds, 0),
+    );
     return () => window.clearTimeout(timer);
-  }, [session, signOut]);
+  }, [clearSessionAndRedirect, session]);
 
   useEffect(() => {
     if (isReady && !session && pathname !== "/login") {

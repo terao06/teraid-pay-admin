@@ -5,6 +5,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
 import ClearRoundedIcon from "@mui/icons-material/ClearRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import DevicesRoundedIcon from "@mui/icons-material/DevicesRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import VisibilityOffRoundedIcon from "@mui/icons-material/VisibilityOffRounded";
@@ -16,6 +17,11 @@ import {
   Button,
   ButtonGroup,
   Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   InputAdornment,
   LinearProgress,
@@ -34,7 +40,8 @@ import {
   Typography,
 } from "@mui/material";
 
-import { fetchDevices } from "@/features/device/api/client";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
+import { deleteDevice, fetchDevices } from "@/features/device/api/client";
 import type {
   DeviceListItem,
   DevicePagination,
@@ -95,6 +102,7 @@ function TableLoadingRows() {
       <TableCell><Skeleton width={index % 2 === 0 ? "55%" : "42%"} /></TableCell>
       <TableCell><Skeleton width={78} height={32} /></TableCell>
       <TableCell><Skeleton width={138} /></TableCell>
+      <TableCell align="center"><Skeleton variant="circular" width={28} height={28} /></TableCell>
     </TableRow>
   ));
 }
@@ -107,7 +115,11 @@ export function DeviceListView() {
   const [status, setStatus] = useState<DeviceStatusFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deviceToDelete, setDeviceToDelete] = useState<DeviceListItem | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -167,8 +179,49 @@ export function DeviceListView() {
     setPage(1);
   }
 
+  function openDeleteDialog(device: DeviceListItem) {
+    setDeleteErrorMessage(null);
+    setDeviceToDelete(device);
+  }
+
+  function closeDeleteDialog() {
+    if (isDeleting) {
+      return;
+    }
+
+    setDeviceToDelete(null);
+  }
+
+  async function handleDeleteDevice() {
+    if (!deviceToDelete || isDeleting) {
+      return;
+    }
+
+    const deletedDeviceName = deviceToDelete.device_name;
+    setIsDeleting(true);
+    setDeleteErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      await deleteDevice(deviceToDelete.device_id);
+      setDeviceToDelete(null);
+      setSuccessMessage(`「${deletedDeviceName}」を削除しました。`);
+      setReloadKey((current) => current + 1);
+    } catch (error) {
+      setDeleteErrorMessage(readClientError(error, "デバイスの削除に失敗しました。"));
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <Stack spacing={3}>
+      <FeedbackBanner
+        message={successMessage}
+        severity="success"
+        onClose={() => setSuccessMessage(null)}
+      />
+
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
@@ -335,13 +388,14 @@ export function DeviceListView() {
                 <TableCell sx={{ color: "text.secondary", fontWeight: 800 }}>デバイス名</TableCell>
                 <TableCell sx={{ width: 120, color: "text.secondary", fontWeight: 800 }}>状態</TableCell>
                 <TableCell sx={{ width: 200, color: "text.secondary", fontWeight: 800 }}>登録日時</TableCell>
+                <TableCell align="center" sx={{ width: 88, color: "text.secondary", fontWeight: 800 }}>操作</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading && devices.length === 0 ? <TableLoadingRows /> : null}
               {!isLoading && !errorMessage && devices.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} sx={{ py: 8, borderBottom: 0 }}>
+                  <TableCell colSpan={5} sx={{ py: 8, borderBottom: 0 }}>
                     <Stack spacing={1.5} sx={{ alignItems: "center", textAlign: "center" }}>
                       <Box
                         sx={{
@@ -415,6 +469,25 @@ export function DeviceListView() {
                           {formatCreatedAt(device.created_at)}
                         </Typography>
                       </TableCell>
+                      <TableCell align="center">
+                        <Tooltip title="削除">
+                          <span>
+                            <IconButton
+                              color="error"
+                              size="small"
+                              aria-label={`${device.device_name}を削除`}
+                              disabled={isDeleting}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                openDeleteDialog(device);
+                              }}
+                              onKeyDown={(event) => event.stopPropagation()}
+                            >
+                              <DeleteOutlineRoundedIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </TableCell>
                     </TableRow>
                   ))
                 : null}
@@ -451,6 +524,43 @@ export function DeviceListView() {
           </Stack>
         ) : null}
       </Paper>
+
+      <Dialog
+        open={deviceToDelete !== null}
+        onClose={closeDeleteDialog}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="device-delete-dialog-title"
+      >
+        <DialogTitle id="device-delete-dialog-title">デバイスを削除しますか？</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5}>
+            <Typography variant="body2" color="text.secondary">
+              削除すると、このデバイスは一覧に表示されなくなります。この操作は取り消せません。
+            </Typography>
+            {deviceToDelete ? (
+              <Typography variant="body1" sx={{ fontWeight: 750 }}>
+                {deviceToDelete.device_name}
+              </Typography>
+            ) : null}
+            {deleteErrorMessage ? <Alert severity="error">{deleteErrorMessage}</Alert> : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} disabled={isDeleting}>
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleDeleteDevice}
+            color="error"
+            variant="contained"
+            disabled={isDeleting || !deviceToDelete}
+            startIcon={isDeleting ? <CircularProgress color="inherit" size={16} /> : <DeleteOutlineRoundedIcon />}
+          >
+            {isDeleting ? "削除中..." : "削除する"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

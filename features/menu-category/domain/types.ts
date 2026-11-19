@@ -68,3 +68,10 @@ export interface MenuCategoryUpdateResponse {
   status: "success";
   data: MenuCategoryUpdateResult;
 }
+
+export interface MenuCategoryDeleteResponse {
+  status: "success";
+  data: {
+    menu_category_id: number;
+  };
+}
