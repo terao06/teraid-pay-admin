@@ -116,6 +116,7 @@ export function DeviceListView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deviceToDelete, setDeviceToDelete] = useState<DeviceListItem | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
@@ -182,6 +183,7 @@ export function DeviceListView() {
   function openDeleteDialog(device: DeviceListItem) {
     setDeleteErrorMessage(null);
     setDeviceToDelete(device);
+    setIsDeleteDialogOpen(true);
   }
 
   function closeDeleteDialog() {
@@ -189,11 +191,16 @@ export function DeviceListView() {
       return;
     }
 
+    setIsDeleteDialogOpen(false);
+  }
+
+  function clearDeleteDialog() {
     setDeviceToDelete(null);
+    setDeleteErrorMessage(null);
   }
 
   async function handleDeleteDevice() {
-    if (!deviceToDelete || isDeleting) {
+    if (!isDeleteDialogOpen || !deviceToDelete || isDeleting) {
       return;
     }
 
@@ -204,7 +211,7 @@ export function DeviceListView() {
 
     try {
       await deleteDevice(deviceToDelete.device_id);
-      setDeviceToDelete(null);
+      setIsDeleteDialogOpen(false);
       setSuccessMessage(`「${deletedDeviceName}」を削除しました。`);
       setReloadKey((current) => current + 1);
     } catch (error) {
@@ -526,8 +533,9 @@ export function DeviceListView() {
       </Paper>
 
       <Dialog
-        open={deviceToDelete !== null}
+        open={isDeleteDialogOpen}
         onClose={closeDeleteDialog}
+        slotProps={{ transition: { onExited: clearDeleteDialog } }}
         fullWidth
         maxWidth="xs"
         aria-labelledby="device-delete-dialog-title"
@@ -536,7 +544,9 @@ export function DeviceListView() {
         <DialogContent>
           <Stack spacing={1.5}>
             <Typography variant="body2" color="text.secondary">
-              削除すると、このデバイスは一覧に表示されなくなります。この操作は取り消せません。
+              削除すると、このデバイスは一覧に表示されなくなります。
+              <br />
+              この操作は取り消せません。
             </Typography>
             {deviceToDelete ? (
               <Typography variant="body1" sx={{ fontWeight: 750 }}>

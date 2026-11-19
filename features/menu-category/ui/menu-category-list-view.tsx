@@ -40,6 +40,7 @@ import {
   Typography,
 } from "@mui/material";
 
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
 import { deleteMenuCategory, fetchMenuCategories } from "@/features/menu-category/api/client";
 import type {
   MenuCategory,
@@ -100,6 +101,7 @@ export function MenuCategoryListView() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState<MenuCategory | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
@@ -164,12 +166,17 @@ export function MenuCategoryListView() {
 
   function closeDeleteDialog() {
     if (!isDeleting) {
-      setCategoryToDelete(null);
+      setIsDeleteDialogOpen(false);
     }
   }
 
+  function clearDeleteDialog() {
+    setCategoryToDelete(null);
+    setDeleteErrorMessage(null);
+  }
+
   async function handleDeleteCategory() {
-    if (!categoryToDelete || isDeleting) {
+    if (!isDeleteDialogOpen || !categoryToDelete || isDeleting) {
       return;
     }
 
@@ -179,7 +186,7 @@ export function MenuCategoryListView() {
 
     try {
       await deleteMenuCategory(categoryToDelete.menu_category_id);
-      setCategoryToDelete(null);
+      setIsDeleteDialogOpen(false);
       setSuccessMessage(`「${categoryToDelete.name}」を削除しました。`);
       setIsLoading(true);
       setReloadKey((current) => current + 1);
@@ -192,6 +199,12 @@ export function MenuCategoryListView() {
 
   return (
     <Stack spacing={3}>
+      <FeedbackBanner
+        message={successMessage}
+        severity="success"
+        onClose={() => setSuccessMessage(null)}
+      />
+
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
@@ -306,8 +319,6 @@ export function MenuCategoryListView() {
           {errorMessage}
         </Alert>
       ) : null}
-
-      {successMessage ? <Alert severity="success">{successMessage}</Alert> : null}
 
       <Paper variant="outlined" sx={{ overflow: "hidden" }}>
         <Box
@@ -461,6 +472,7 @@ export function MenuCategoryListView() {
                             event.stopPropagation();
                             setDeleteErrorMessage(null);
                             setCategoryToDelete(category);
+                            setIsDeleteDialogOpen(true);
                           }}
                         >
                           <DeleteOutlineRoundedIcon fontSize="small" />
@@ -504,8 +516,9 @@ export function MenuCategoryListView() {
       </Paper>
 
       <Dialog
-        open={categoryToDelete !== null}
+        open={isDeleteDialogOpen}
         onClose={closeDeleteDialog}
+        slotProps={{ transition: { onExited: clearDeleteDialog } }}
         fullWidth
         maxWidth="xs"
         aria-labelledby="menu-category-delete-dialog-title"

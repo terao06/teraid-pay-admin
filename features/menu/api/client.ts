@@ -7,6 +7,7 @@ export { fetchMenuCategories } from "@/features/menu-category/api/client";
 import type {
   MenuCreateRequest,
   MenuCreateSuccessResponse,
+  MenuDeleteResponse,
   MenuDetailResponse,
   MenuListSuccessResponse,
   MenuOptionGroupsUpdateRequest,
@@ -67,6 +68,13 @@ export function updateMenu(menuItemId: number, payload: MenuUpdateRequest) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     }),
+  );
+}
+
+export function deleteMenu(menuItemId: number) {
+  return readJsonOrThrow<MenuDeleteResponse>(
+    createStoreApiUrl(`/store/menu/${menuItemId}`),
+    withAuthorization({ method: "DELETE" }),
   );
 }
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import AutorenewRoundedIcon from "@mui/icons-material/AutorenewRounded";
 import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import DeleteOutlineRoundedIcon from "@mui/icons-material/DeleteOutlineRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import ImageNotSupportedRoundedIcon from "@mui/icons-material/ImageNotSupportedRounded";
 import RestaurantMenuRoundedIcon from "@mui/icons-material/RestaurantMenuRounded";
@@ -15,6 +16,11 @@ import {
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControl,
   IconButton,
   InputAdornment,
@@ -31,7 +37,8 @@ import {
   Typography,
 } from "@mui/material";
 
-import { fetchMenuCategories, fetchMenus } from "@/features/menu/api/client";
+import { FeedbackBanner } from "@/components/ui/feedback-banner";
+import { deleteMenu, fetchMenuCategories, fetchMenus } from "@/features/menu/api/client";
 import type { MenuCategory, MenuItem, MenuPagination } from "@/features/menu/domain/types";
 import { readClientError } from "@/lib/store-api-client";
 
@@ -113,7 +120,15 @@ function MenuImage({ item }: { item: MenuItem }) {
   );
 }
 
-function MenuCard({ item }: { item: MenuItem }) {
+function MenuCard({
+  item,
+  deleteDisabled,
+  onDelete,
+}: {
+  item: MenuItem;
+  deleteDisabled: boolean;
+  onDelete: () => void;
+}) {
   return (
     <Paper
       component="article"
@@ -166,21 +181,42 @@ function MenuCard({ item }: { item: MenuItem }) {
         </Box>
         <Stack
           direction="row"
-          spacing={1}
-          sx={{ pt: 1.5, mt: "auto", borderTop: "1px solid", borderColor: "divider", alignItems: "center", justifyContent: "space-between" }}
+          sx={{
+            pt: 1.5,
+            mt: "auto",
+            borderTop: "1px solid",
+            borderColor: "divider",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
         >
           <Typography variant="h6" color="primary.dark" sx={{ fontWeight: 900 }}>
             {formatPrice(item.price, item.token_symbol)}
           </Typography>
-          <Button
-            component={NextLink}
-            href={`/menus/edit?id=${item.menu_item_id}`}
-            size="small"
-            variant="outlined"
-            startIcon={<EditRoundedIcon />}
-          >
-            編集
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              component={NextLink}
+              href={`/menus/edit?id=${item.menu_item_id}`}
+              size="small"
+              variant="outlined"
+              startIcon={<EditRoundedIcon />}
+            >
+              編集
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteOutlineRoundedIcon />}
+              aria-label={`${item.name}を削除`}
+              onClick={onDelete}
+              disabled={deleteDisabled}
+            >
+              削除
+            </Button>
+          </Stack>
         </Stack>
       </Stack>
     </Paper>
@@ -212,6 +248,11 @@ export function MenuListView() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [menuToDelete, setMenuToDelete] = useState<MenuItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -255,22 +296,18 @@ export function MenuListView() {
           page_size: MENU_PAGE_SIZE,
         });
         if (isActive) {
-          if (
-            result.data.pagination.total_pages > 0 &&
-            page > result.data.pagination.total_pages
-          ) {
-            setPage(result.data.pagination.total_pages);
+          const lastPage = Math.max(1, result.data.pagination.total_pages);
+          if (page > lastPage) {
+            setPage(lastPage);
             return;
           }
           setMenus(result.data.menu_items);
           setPagination(result.data.pagination);
+          setIsLoading(false);
         }
       } catch (error) {
         if (isActive) {
           setErrorMessage(readClientError(error, "メニューの取得に失敗しました。"));
-        }
-      } finally {
-        if (isActive) {
           setIsLoading(false);
         }
       }
@@ -299,8 +336,53 @@ export function MenuListView() {
     setPage(1);
   }
 
+  function openDeleteDialog(item: MenuItem) {
+    setDeleteErrorMessage(null);
+    setMenuToDelete(item);
+    setIsDeleteDialogOpen(true);
+  }
+
+  function closeDeleteDialog() {
+    if (!isDeleting) {
+      setIsDeleteDialogOpen(false);
+    }
+  }
+
+  function clearDeleteDialog() {
+    setMenuToDelete(null);
+    setDeleteErrorMessage(null);
+  }
+
+  async function handleDeleteMenu() {
+    if (!isDeleteDialogOpen || !menuToDelete || isDeleting) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      await deleteMenu(menuToDelete.menu_item_id);
+      setIsDeleteDialogOpen(false);
+      setSuccessMessage(`「${menuToDelete.name}」を削除しました。`);
+      setIsLoading(true);
+      setReloadKey((current) => current + 1);
+    } catch (error) {
+      setDeleteErrorMessage(readClientError(error, "メニューの削除に失敗しました。"));
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   return (
     <Stack spacing={3}>
+      <FeedbackBanner
+        message={successMessage}
+        severity="success"
+        onClose={() => setSuccessMessage(null)}
+      />
+
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
@@ -474,7 +556,14 @@ export function MenuListView() {
                 gap: 2,
               }}
             >
-              {filteredMenus.map((item) => <MenuCard key={item.menu_item_id} item={item} />)}
+              {filteredMenus.map((item) => (
+                <MenuCard
+                  key={item.menu_item_id}
+                  item={item}
+                  deleteDisabled={isLoading}
+                  onDelete={() => openDeleteDialog(item)}
+                />
+              ))}
             </Box>
           ) : (
             <Paper variant="outlined" sx={{ minHeight: 340, p: 4, display: "grid", placeItems: "center" }}>
@@ -533,6 +622,34 @@ export function MenuListView() {
           ) : null}
         </Stack>
       ) : null}
+
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={closeDeleteDialog}
+        slotProps={{ transition: { onExited: clearDeleteDialog } }}
+        fullWidth
+        maxWidth="xs"
+        aria-labelledby="menu-delete-dialog-title"
+        aria-describedby="menu-delete-dialog-description"
+      >
+        <DialogTitle id="menu-delete-dialog-title">メニューを削除しますか？</DialogTitle>
+        <DialogContent>
+          <Stack spacing={1.5}>
+            <DialogContentText id="menu-delete-dialog-description">
+              「{menuToDelete?.name}」とそのオプションを削除します。
+            </DialogContentText>
+            {deleteErrorMessage ? <Alert severity="error">{deleteErrorMessage}</Alert> : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeDeleteDialog} disabled={isDeleting} autoFocus>
+            キャンセル
+          </Button>
+          <Button onClick={handleDeleteMenu} color="error" variant="contained" loading={isDeleting}>
+            {isDeleting ? "削除中…" : "削除する"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

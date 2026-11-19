@@ -93,6 +93,13 @@ export interface MenuUpdateResponse {
   data: MenuCreateResult;
 }
 
+export interface MenuDeleteResponse {
+  status: "success";
+  data: {
+    menu_item_id: number;
+  };
+}
+
 export interface MenuOptionUpdateRequest extends MenuOptionCreateRequest {
   menu_option_id?: number;
 }

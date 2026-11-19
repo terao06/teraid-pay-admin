@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import {
@@ -119,6 +119,7 @@ export function WalletDetailView({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [walletToDelete, setWalletToDelete] = useState<StoreWalletResponse | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(initialError ?? null);
   const hasMounted = useSyncExternalStore(
@@ -318,7 +319,8 @@ export function WalletDetailView({
     }
   }
 
-  function openDeleteDialog() {
+  function openDeleteDialog(selectedWallet: StoreWalletResponse) {
+    setWalletToDelete(selectedWallet);
     setIsDeleteDialogOpen(true);
   }
 
@@ -330,8 +332,12 @@ export function WalletDetailView({
     setIsDeleteDialogOpen(false);
   }
 
+  function clearDeleteDialog() {
+    setWalletToDelete(null);
+  }
+
   async function handleDeleteWallet() {
-    if (!wallet || isDeleting) {
+    if (!isDeleteDialogOpen || !walletToDelete || isDeleting) {
       return;
     }
 
@@ -339,7 +345,7 @@ export function WalletDetailView({
     setErrorMessage(null);
 
     try {
-      await deleteStoreWallet(wallet.wallet_id);
+      await deleteStoreWallet(walletToDelete.wallet_id);
       setWallet(null);
       setStatusMessage("ウォレットを削除しました。");
       setIsDeleteDialogOpen(false);
@@ -378,7 +384,7 @@ export function WalletDetailView({
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
           {wallet ? (
             <Button
-              onClick={openDeleteDialog}
+              onClick={() => openDeleteDialog(wallet)}
               variant="outlined"
               color="error"
               disabled={isRefreshing || isDeleting}
@@ -519,19 +525,25 @@ export function WalletDetailView({
         </Paper>
       )}
 
-      <Dialog open={isDeleteDialogOpen} onClose={closeDeleteDialog} fullWidth maxWidth="xs">
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={closeDeleteDialog}
+        slotProps={{ transition: { onExited: clearDeleteDialog } }}
+        fullWidth
+        maxWidth="xs"
+      >
         <DialogTitle>ウォレットを削除しますか？</DialogTitle>
         <DialogContent>
           <Stack spacing={1.5}>
             <Typography variant="body2" color="text.secondary">
               削除後は登録情報が画面から消えます。必要な場合は再度ウォレット登録を行ってください。
             </Typography>
-            {wallet ? (
+            {walletToDelete ? (
               <Typography
                 variant="body2"
                 sx={{ fontFamily: "var(--font-mono)", wordBreak: "break-all" }}
               >
-                {wallet.wallet_address}
+                {walletToDelete.wallet_address}
               </Typography>
             ) : null}
           </Stack>
@@ -544,7 +556,7 @@ export function WalletDetailView({
             onClick={handleDeleteWallet}
             color="error"
             variant="contained"
-            disabled={isDeleting || !wallet}
+            disabled={isDeleting || !walletToDelete}
           >
             {isDeleting ? "削除中..." : "削除する"}
           </Button>
