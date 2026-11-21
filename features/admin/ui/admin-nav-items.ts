@@ -28,6 +28,15 @@ export const adminNavItems: AdminNavItem[] = [
     ],
   },
   {
+    label: "オーダー管理",
+    items: [
+      {
+        href: "/orders",
+        label: "オーダー一覧",
+      },
+    ],
+  },
+  {
     label: "ウォレット",
     items: [
       {

@@ -47,12 +47,16 @@ export function AdminShell({ children }: AdminShellProps) {
         ? "メニュー編集"
       : pathname.startsWith("/menus")
         ? "メニュー管理"
-        : "ウォレット管理";
+        : pathname === "/orders"
+          ? "オーダー管理"
+          : "ウォレット管理";
   const pageDescription = pathname.startsWith("/devices")
     ? "店舗で利用するデバイスを管理します"
     : pathname.startsWith("/menus") || pathname.startsWith("/menu-categories")
       ? "メニューとカテゴリーを、わかりやすく管理します"
-      : "店舗ウォレットを安全に管理します";
+      : pathname === "/orders"
+        ? "未提供の注文を受付順に確認"
+        : "店舗ウォレットを安全に管理します";
   const managerInitial = session?.storeManager.name.trim().charAt(0).toUpperCase() || "A";
 
   async function handleSignOut() {
